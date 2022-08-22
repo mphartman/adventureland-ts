@@ -22,9 +22,9 @@
     "antlr4ts": "^0.5.0-alpha.4"
   },
   "scripts": {
-    "clean": "rimraf dist",
+    "clean": "rimraf dist generated",
     "pregen": "yarn clean",
-    "gen": "antlr4ts -o dist -visitor grammar/Adventure.g4",
+    "gen": "antlr4ts -o generated -visitor grammar/Adventure.g4",
     "format": "prettier src/**/*.ts --write"
   },
   "prettier": {
