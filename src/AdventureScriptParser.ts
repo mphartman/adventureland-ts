@@ -1,6 +1,6 @@
 import { CharStreams, CommonTokenStream } from 'antlr4ts';
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor';
-import { AdventureLexer } from './grammar/AdventureLexer';
+import { AdventureLexer } from '../generated/grammar/AdventureLexer'
 import {
   AdventureContext,
   AdventureParser,
@@ -8,17 +8,17 @@ import {
   GlobalParameterStartContext,
   RoomDeclarationContext,
   RoomExitContext,
-} from './grammar/AdventureParser';
-import { AdventureVisitor } from './grammar/AdventureVisitor';
+} from '../generated/grammar/AdventureParser';
+import { AdventureVisitor } from '../generated/grammar/AdventureVisitor';
 import { Adventure } from './Adventure';
 
 export class AdventureScriptParser {
-  readonly adventure: Adventure;
+  private readonly adventure: Adventure;
 
   constructor(adventureScriptText: string) {
-    let inputStream = CharStreams.fromString(adventureScriptText);
-    let lexer = new AdventureLexer(inputStream);
-    let parser = new AdventureParser(new CommonTokenStream(lexer));
+    const inputStream = CharStreams.fromString(adventureScriptText);
+    const lexer = new AdventureLexer(inputStream);
+    const parser = new AdventureParser(new CommonTokenStream(lexer));
     this.adventure = new RealAdventureVisitor().visit(parser.adventure());
   }
 }
@@ -54,7 +54,7 @@ class RealAdventureVisitor
         })()
       )
     )[0];
-    console.log(startingRoom);
+    console.log(`starting in room "${startingRoom}"`);
 
     return {};
   }
