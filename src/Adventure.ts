@@ -1,3 +1,5 @@
+import util from 'node:util';
+
 export class Adventure {
   constructor(
     public readonly rooms?: readonly Room[],
@@ -118,5 +120,69 @@ export class Vocabulary {
   public merge(vocabulary: Vocabulary): Vocabulary {
     const words = this.words.concat(vocabulary.words);
     return new Vocabulary(Array.from(words.values()));
+  }
+}
+
+export class Item extends Word {
+  private static INVENTORY: Room = new Room(
+    'Inventory',
+    "Player's inventory of carried items"
+  );
+
+  #currentRoom: Room;
+
+  constructor(
+    public readonly name: string,
+    public readonly description?: string,
+    public readonly portable: boolean = false,
+    public readonly startingRoom: Room = Room.NOWHERE,
+    public readonly aliases?: readonly string[]
+  ) {
+    super(name, aliases);
+    if (!description) {
+      this.description = name;
+    }
+    this.#currentRoom = startingRoom;
+  }
+
+  public get currentRoom(): Room {
+    return this.#currentRoom;
+  }
+
+  public isHere(room: Room): boolean {
+    return util.isDeepStrictEqual(this.#currentRoom, room);
+  }
+
+  public isCarried(): boolean {
+    return this.isHere(Item.INVENTORY);
+  }
+
+  public hasMoved(): boolean {
+    return !util.isDeepStrictEqual(this.#currentRoom, this.startingRoom);
+  }
+
+  public drop(room: Room): Room {
+    const formerRoom = this.#currentRoom;
+    this.#currentRoom = room;
+    return formerRoom;
+  }
+
+  public stow() {
+    if (this.portable) {
+      return this.drop(Item.INVENTORY);
+    }
+    throw new Error(`Cannot stow a non-portable item in player inventory`);
+  }
+
+  public putWith(item: Item) {
+    this.drop(item.currentRoom);
+  }
+
+  public destroy() {
+    this.drop(Room.NOWHERE);
+  }
+
+  public isDestroyed(): boolean {
+    return this.#currentRoom === Room.NOWHERE;
   }
 }
