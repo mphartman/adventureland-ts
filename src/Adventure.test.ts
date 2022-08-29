@@ -1,4 +1,4 @@
-import { Vocabulary, Word } from './Adventure';
+import { Room, Exit, Vocabulary, Word } from './Adventure';
 
 describe('Word', () => {
   it('should match Word with same name', () => {
@@ -41,13 +41,18 @@ describe('Vocabulary', () => {
   });
 
   it('should not contain unrecognized, ANY or NONE words', () => {
-    const v = new Vocabulary([Word.NONE, Word.ANY, Word.UNRECGONIZED, Word.unrecognized('baz')])
+    const v = new Vocabulary([
+      Word.NONE,
+      Word.ANY,
+      Word.UNRECGONIZED,
+      Word.unrecognized('baz'),
+    ]);
     expect(v.findMatch(Word.ANY)).toBeFalsy();
     expect(v.findMatch(Word.NONE)).toBeFalsy();
     expect(v.findMatch(Word.UNRECGONIZED)).toBeFalsy();
     expect(v.findMatch(Word.unrecognized('baz'))).toBeFalsy();
     expect(v.findMatch(Word.of('car'))).toBeFalsy();
-  })
+  });
 
   it('should merge to create a new Vocabulary containing words from both', () => {
     const v = new Vocabulary([Word.of('one'), Word.of('two')]);
@@ -55,5 +60,31 @@ describe('Vocabulary', () => {
     expect(merged.findMatch(Word.of('three'))).toBeTruthy();
     expect(merged.findMatch(Word.of('two'))).toBeTruthy();
     expect(merged.findMatch(Word.of('one'))).toBeTruthy();
+  });
+});
+
+describe('Room', () => {
+  it('should have name and description', () => {
+    const r = new Room('den', "Mike's den", []);
+    expect(r.name).toBe('den');
+    expect(r.description).toBe("Mike's den");
+  });
+
+  it('should have exits', () => {
+    const r = new Room('forest', 'a lush, green forest', [
+      new Exit('north', 'beach'),
+    ]);
+    expect(r.exits.length).toBe(1);
+    expect(r.exits[0]).toStrictEqual(new Exit('north', 'beach'));
+    expect(r.hasExit(Word.of('north'))).toBeTruthy();
+    expect(r.hasExit(Word.of('south'))).toBeFalsy();
+  });
+
+  it('should have unique exits by direction', () => {
+    const r = new Room('forest', 'a lush, green forest', [
+      new Exit('north', 'beach'),
+    ]);
+    r.setExit(new Exit('north', 'river'));
+    expect(r.exits[0]).toStrictEqual(new Exit('north', 'river'));
   });
 });

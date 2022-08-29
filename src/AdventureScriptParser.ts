@@ -1,19 +1,19 @@
 import { CharStreams, CommonTokenStream } from 'antlr4ts';
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor';
-import { AdventureLexer } from '../generated/grammar/AdventureLexer'
+import { AdventureLexer } from '../generated/grammar/AdventureLexer';
 import {
   AdventureContext,
   AdventureParser,
-  GlobalParameterContext,
   GlobalParameterStartContext,
   RoomDeclarationContext,
   RoomExitContext,
+  WordGroupContext,
 } from '../generated/grammar/AdventureParser';
 import { AdventureVisitor } from '../generated/grammar/AdventureVisitor';
-import { Adventure } from './Adventure';
+import { Adventure, Room, Exit, Vocabulary, Word } from './Adventure';
 
 export class AdventureScriptParser {
-  private readonly adventure: Adventure;
+  public readonly adventure: Adventure;
 
   constructor(adventureScriptText: string) {
     const inputStream = CharStreams.fromString(adventureScriptText);
@@ -41,9 +41,8 @@ class RealAdventureVisitor
   }
 
   visitAdventure(ctx: AdventureContext): Adventure {
-    console.log('visiting adventure');
-
-    this.getRooms(ctx);
+    const rooms = this.getRooms(ctx);
+    const vocabulary = this.getVocabulary(ctx);
 
     const startingRoom = ctx.globalParameter().map((p) =>
       p.accept(
@@ -54,45 +53,77 @@ class RealAdventureVisitor
         })()
       )
     )[0];
-    console.log(`starting in room "${startingRoom}"`);
 
-    return {};
+    return { rooms, vocabulary };
   }
 
-  getRooms(adventureContext: AdventureContext) {
+  private getRooms(adventureContext: AdventureContext) {
     const visitor = new RoomDeclarationVisitor();
-    adventureContext
+    return adventureContext
       .gameElement()
-      .forEach((gameElementContext) =>
+      .map((gameElementContext) =>
         gameElementContext.roomDeclaration()?.accept(visitor)
-      );
+      )
+      .filter((room) => room) as Room[];
+  }
+
+  private getVocabulary(adventureContext: AdventureContext) {
+    const visitor = new VocabularyDeclarationVisitor();
+    const words = adventureContext
+      .gameElement()
+      .map((gameElementContext) =>
+        gameElementContext.vocabularyDeclaration()?.accept(visitor)
+      )
+      .filter((word) => word) as Word[];
+    return new Vocabulary(words);
   }
 }
 
 class RoomDeclarationVisitor
-  extends AbstractParseTreeVisitor<void>
-  implements AdventureVisitor<void>
+  extends AbstractParseTreeVisitor<Room>
+  implements AdventureVisitor<Room>
 {
-  readonly roomExitVisitor = new RoomExitVisitor();
+  defaultResult() {
+    return Room.NOWHERE;
+  }
 
-  defaultResult() {}
-
-  visitRoomDeclaration(ctx: RoomDeclarationContext) {
-    console.log(`found the room "${ctx.roomName().text}"`);
-    ctx
+  visitRoomDeclaration(ctx: RoomDeclarationContext): Room {
+    const roomExitVisitor = new ExitVisitor();
+    const exits = ctx
       .roomExits()
       ?.roomExit()
-      .forEach((roomExit) => roomExit.accept(this.roomExitVisitor));
+      .map((roomExitContext) => roomExitContext.accept(roomExitVisitor));
+    return new Room(ctx.roomName().text, ctx.roomDescription().text, exits);
   }
 }
 
-class RoomExitVisitor
-  extends AbstractParseTreeVisitor<void>
-  implements AdventureVisitor<void>
+class ExitVisitor
+  extends AbstractParseTreeVisitor<Exit>
+  implements AdventureVisitor<Exit>
 {
-  defaultResult() {}
+  defaultResult() {
+    return { direction: '' };
+  }
 
-  visitRoomExit(ctx: RoomExitContext) {
-    console.log(`found room exit ${ctx.exitDirection().text}`);
+  visitRoomExit(ctx: RoomExitContext): Exit {
+    return {
+      direction: ctx.exitDirection().text,
+      room: ctx.roomName()?.text,
+    };
+  }
+}
+
+class VocabularyDeclarationVisitor
+  extends AbstractParseTreeVisitor<Word>
+  implements AdventureVisitor<Word>
+{
+  defaultResult() {
+    return Word.UNRECGONIZED;
+  }
+
+  visitWordGroup(ctx: WordGroupContext) {
+    const name = ctx.word().text;
+    const synonyms = Array.from(ctx.synonym()?.map((s) => s.text));
+    return new Word(name, synonyms);
   }
 }

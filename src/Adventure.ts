@@ -1,6 +1,54 @@
-import { Set } from 'immutable';
+export class Adventure {
+  constructor(
+    public readonly rooms?: readonly Room[],
+    public readonly vocabulary?: Vocabulary
+  ) {}
+}
 
-export interface Adventure {}
+/**
+ * Rooms make up a connected network of nodes between which the player may move.
+ * A Room may have no more than one exit per direction but each exit may point to the same room.
+ * E.g. A room can only have one North exit but the North and Up exits can both reference the same destination.
+ */
+export class Room {
+  public static NOWHERE: Room = new Room(
+    'nowhere',
+    "I am no where.  It's dark and I am alone."
+  );
+
+  readonly #exitsByDirection: Map<string, Exit> = new Map();
+
+  constructor(
+    readonly name: string,
+    readonly description: string,
+    exits: Exit[] = []
+  ) {
+    exits.forEach((exit) => this.#exitsByDirection.set(exit.direction, exit));
+  }
+
+  public get exits(): readonly Exit[] {
+    return Array.from(this.#exitsByDirection.values());
+  }
+
+  public setExit(exit: Exit) {
+    this.#exitsByDirection.set(exit.direction, exit);
+  }
+
+  public hasExit(direction: Word): boolean {
+    return this.#exitsByDirection.has(direction.name);
+  }
+
+  public exit(direction: Word): string | undefined {
+    return this.#exitsByDirection.get(direction.name)?.room;
+  }
+}
+
+/**
+ * A RoomExit is made up of a direction (e.g. North) and destination Room (i.e. where you end up after traveling in this RoomExit's direction).
+ */
+export class Exit {
+  constructor(readonly direction: string, readonly room?: string) {}
+}
 
 export class Word {
   public static UNRECGONIZED = new Word('<unrecognized>', [], false);
@@ -19,14 +67,14 @@ export class Word {
     return name ? new Word(name, [], false) : Word.UNRECGONIZED;
   }
 
-  private readonly _synonyms: readonly string[];
+  readonly #_synonyms: readonly string[];
 
   constructor(
     readonly name: string,
     readonly synonyms: readonly string[] = [],
     readonly recognized: boolean = true
   ) {
-    this._synonyms = [name.toUpperCase()].concat(
+    this.#_synonyms = [name.toUpperCase()].concat(
       synonyms.map((s) => s.toUpperCase())
     );
   }
@@ -42,33 +90,33 @@ export class Word {
     if (this === Word.NONE && that == Word.NONE) return true;
     if (this === Word.NONE || that === Word.NONE) return false;
     if (this === Word.ANY || that === Word.ANY) return true;
-    return this._synonyms.filter((s) => that._synonyms.includes(s)).length > 0;
+    return (
+      this.#_synonyms.filter((s) => that.#_synonyms.includes(s)).length > 0
+    );
   }
 
-  public toString = () : string => {
-    return this.name
-  }
+  public toString = (): string => {
+    return this.name;
+  };
 }
 
 export class Vocabulary {
-  private readonly _words: Set<Word>;
+  public readonly words: readonly Word[];
 
   constructor(words: Word[]) {
-    this._words = Set<Word>(
-      words.filter(
-        (word) =>
-          !(word.unrecognized() || word === Word.NONE || word === Word.ANY)
-      )
+    this.words = words.filter(
+      (word) =>
+        !(word.unrecognized() || word === Word.NONE || word === Word.ANY)
     );
   }
 
   public findMatch(word: string | Word): Word | undefined {
     const wordToFind = Word.of(word);
-    return this._words.find((w) => w.matches(wordToFind));
+    return this.words.find((w) => w.matches(wordToFind));
   }
 
   public merge(vocabulary: Vocabulary): Vocabulary {
-    const words = this._words.concat(vocabulary._words);
+    const words = this.words.concat(vocabulary.words);
     return new Vocabulary(Array.from(words.values()));
   }
 }
