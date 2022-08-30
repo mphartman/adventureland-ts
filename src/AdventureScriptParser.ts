@@ -7,9 +7,10 @@ import {
   ItemDeclarationContext,
   ItemInRoomContext,
   ItemIsInInventoryContext,
-  ItemIsNowhereContext, RoomDeclarationContext,
+  ItemIsNowhereContext,
+  RoomDeclarationContext,
   RoomExitContext,
-  WordGroupContext
+  WordGroupContext,
 } from '../generated/grammar/AdventureParser';
 import { AdventureVisitor } from '../generated/grammar/AdventureVisitor';
 import { Adventure, Exit, Item, Room, Vocabulary, Word } from './Adventure';
