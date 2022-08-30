@@ -1,4 +1,4 @@
-import { main } from './game';
+import { main } from './Game';
 
 test.skip('print hello to console', () => {
   jest.spyOn(global.console, 'log');
