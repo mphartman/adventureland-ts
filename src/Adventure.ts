@@ -44,6 +44,10 @@ export class Room {
   public exit(direction: Word): string | undefined {
     return this.#exitsByDirection.get(direction.name)?.room;
   }
+
+  public equals(that: Room): boolean {
+    return util.isDeepStrictEqual(this, that);
+  }
 }
 
 /**
