@@ -4,13 +4,15 @@ import { AdventureLexer } from '../generated/grammar/AdventureLexer';
 import {
   AdventureContext,
   AdventureParser,
-  GlobalParameterStartContext,
-  RoomDeclarationContext,
+  ItemDeclarationContext,
+  ItemInRoomContext,
+  ItemIsInInventoryContext,
+  ItemIsNowhereContext, RoomDeclarationContext,
   RoomExitContext,
-  WordGroupContext,
+  WordGroupContext
 } from '../generated/grammar/AdventureParser';
 import { AdventureVisitor } from '../generated/grammar/AdventureVisitor';
-import { Adventure, Room, Exit, Vocabulary, Word } from './Adventure';
+import { Adventure, Exit, Item, Room, Vocabulary, Word } from './Adventure';
 
 export class AdventureScriptParser {
   public readonly adventure: Adventure;
@@ -20,15 +22,6 @@ export class AdventureScriptParser {
     const lexer = new AdventureLexer(inputStream);
     const parser = new AdventureParser(new CommonTokenStream(lexer));
     this.adventure = new RealAdventureVisitor().visit(parser.adventure());
-  }
-}
-
-abstract class AbstractVisitor<T>
-  extends AbstractParseTreeVisitor<T>
-  implements AdventureVisitor<T>
-{
-  defaultResult(): T {
-    return {} as T;
   }
 }
 
@@ -42,22 +35,12 @@ class RealAdventureVisitor
 
   visitAdventure(ctx: AdventureContext): Adventure {
     const rooms = this.getRooms(ctx);
+    const items = this.getItems(ctx);
     const vocabulary = this.getVocabulary(ctx);
-
-    const startingRoom = ctx.globalParameter().map((p) =>
-      p.accept(
-        new (class extends AbstractVisitor<string> {
-          visitGlobalParameterStart(ctx: GlobalParameterStartContext) {
-            return ctx.startParameter().roomName().text;
-          }
-        })()
-      )
-    )[0];
-
-    return { rooms, vocabulary };
+    return { rooms, items, vocabulary };
   }
 
-  private getRooms(adventureContext: AdventureContext) {
+  private getRooms(adventureContext: AdventureContext): Room[] {
     const visitor = new RoomDeclarationVisitor();
     return adventureContext
       .gameElement()
@@ -67,7 +50,17 @@ class RealAdventureVisitor
       .filter((room) => room) as Room[];
   }
 
-  private getVocabulary(adventureContext: AdventureContext) {
+  private getItems(adventureContext: AdventureContext): Item[] {
+    const visitor = new ItemVisitor();
+    return adventureContext
+      .gameElement()
+      .map((gameElementContext) =>
+        gameElementContext.itemDeclaration()?.accept(visitor)
+      )
+      .filter((item) => item) as Item[];
+  }
+
+  private getVocabulary(adventureContext: AdventureContext): Vocabulary {
     const visitor = new VocabularyDeclarationVisitor();
     const words = adventureContext
       .gameElement()
@@ -88,7 +81,7 @@ class RoomDeclarationVisitor
   }
 
   visitRoomDeclaration(ctx: RoomDeclarationContext): Room {
-    const roomExitVisitor = new ExitVisitor();
+    const roomExitVisitor = new RoomExitVisitor();
     const exits = ctx
       .roomExits()
       ?.roomExit()
@@ -97,7 +90,7 @@ class RoomDeclarationVisitor
   }
 }
 
-class ExitVisitor
+class RoomExitVisitor
   extends AbstractParseTreeVisitor<Exit>
   implements AdventureVisitor<Exit>
 {
@@ -125,5 +118,53 @@ class VocabularyDeclarationVisitor
     const name = ctx.word().text;
     const synonyms = Array.from(ctx.synonym()?.map((s) => s.text));
     return new Word(name, synonyms);
+  }
+}
+
+class ItemVisitor
+  extends AbstractParseTreeVisitor<Item>
+  implements AdventureVisitor<Item>
+{
+  defaultResult() {
+    return new Item('');
+  }
+
+  visitItemDeclaration(ctx: ItemDeclarationContext) {
+    const name = ctx.itemName().text;
+    const description = ctx.itemDescription().text;
+    const location = ctx.itemLocation()?.accept(new ItemLocationVisitor());
+    const aliases = ctx
+      .itemAliases()
+      ?.itemAlias()
+      .map((itemAliasContext) => itemAliasContext.text);
+    const portable = (aliases && aliases.length > 0) || location?.inventory;
+    return new Item(name, description, portable, location?.room, aliases);
+  }
+}
+
+type ItemLocation = {
+  readonly room?: string;
+  readonly inventory?: boolean;
+  readonly nowhere?: boolean;
+};
+
+class ItemLocationVisitor
+  extends AbstractParseTreeVisitor<ItemLocation>
+  implements AdventureVisitor<ItemLocation>
+{
+  defaultResult(): ItemLocation {
+    return {};
+  }
+
+  visitItemInRoom(ctx: ItemInRoomContext) {
+    return { room: ctx.roomName().text };
+  }
+
+  visitItemIsInInventory(_: ItemIsInInventoryContext) {
+    return { inventory: true };
+  }
+
+  visitItemIsNowhere(_: ItemIsNowhereContext) {
+    return { nowhere: true };
   }
 }

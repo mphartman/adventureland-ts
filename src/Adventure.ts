@@ -3,6 +3,7 @@ import util from 'node:util';
 export class Adventure {
   constructor(
     public readonly rooms?: readonly Room[],
+    public readonly items?: readonly Item[],
     public readonly vocabulary?: Vocabulary
   ) {}
 }
@@ -124,19 +125,16 @@ export class Vocabulary {
 }
 
 export class Item extends Word {
-  private static INVENTORY: Room = new Room(
-    'Inventory',
-    "Player's inventory of carried items"
-  );
+  private static INVENTORY = '#INVENTORY#';
 
-  #currentRoom: Room;
+  #currentRoom?: string;
 
   constructor(
     public readonly name: string,
     public readonly description?: string,
     public readonly portable: boolean = false,
-    public readonly startingRoom: Room = Room.NOWHERE,
-    public readonly aliases?: readonly string[]
+    public readonly startingRoom?: string,
+    aliases?: string[]
   ) {
     super(name, aliases);
     if (!description) {
@@ -145,29 +143,29 @@ export class Item extends Word {
     this.#currentRoom = startingRoom;
   }
 
-  public get currentRoom(): Room {
+  public get currentRoom(): string | undefined {
     return this.#currentRoom;
   }
 
   public isHere(room: Room): boolean {
-    return util.isDeepStrictEqual(this.#currentRoom, room);
+    return this.#currentRoom === room.name;
   }
 
   public isCarried(): boolean {
-    return this.isHere(Item.INVENTORY);
+    return this.#currentRoom === Item.INVENTORY;
   }
 
   public hasMoved(): boolean {
-    return !util.isDeepStrictEqual(this.#currentRoom, this.startingRoom);
+    return this.#currentRoom !== this.startingRoom;
   }
 
-  public drop(room: Room): Room {
+  public drop(room: Room | string | undefined): string | undefined {
     const formerRoom = this.#currentRoom;
-    this.#currentRoom = room;
+    this.#currentRoom = typeof room === 'string' ? room : room?.name;
     return formerRoom;
   }
 
-  public stow() {
+  public stow(): string | undefined {
     if (this.portable) {
       return this.drop(Item.INVENTORY);
     }
@@ -179,10 +177,10 @@ export class Item extends Word {
   }
 
   public destroy() {
-    this.drop(Room.NOWHERE);
+    this.drop(undefined);
   }
 
   public isDestroyed(): boolean {
-    return this.#currentRoom === Room.NOWHERE;
+    return this.#currentRoom === undefined;
   }
 }

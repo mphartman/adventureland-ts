@@ -97,28 +97,16 @@ describe('Item', () => {
 
   it('should default starting rooom to NOWHERE', () => {
     const i = new Item('hairbrush');
-    expect(i.startingRoom === Room.NOWHERE).toBeTruthy();
+    expect(i.startingRoom === undefined).toBeTruthy();
   });
 
   it('should default current room to starting room', () => {
-    const i = new Item(
-      'axe',
-      'sharp handaxe',
-      true,
-      new Room('lumberyard', 'tree graveyard')
-    );
-    expect(i.currentRoom).toStrictEqual(
-      new Room('lumberyard', 'tree graveyard')
-    );
+    const i = new Item('axe', 'sharp handaxe', true, 'lumberyard');
+    expect(i.currentRoom).toBe('lumberyard');
   });
 
   it('should be in its current room', () => {
-    const i = new Item(
-      'chair',
-      'patio chair',
-      false,
-      new Room('patio', 'walk-out patio')
-    );
+    const i = new Item('chair', 'patio chair', false, 'patio');
     expect(i.isHere(new Room('patio', 'walk-out patio'))).toBeTruthy();
     expect(i.isHere(new Room('garage', 'place for cars'))).toBeFalsy();
   });
@@ -144,7 +132,7 @@ describe('Item', () => {
       'lunch-bag',
       'peanut butter and jelly sandwich and chips',
       true,
-      new Room('backpack', 'canvas bag with shoulder straps')
+      'backpack'
     );
     const trapperKeeper = new Item('trapper-keeper');
     trapperKeeper.putWith(lunchBag);
@@ -160,7 +148,7 @@ describe('Item', () => {
       'ring',
       'one ring to rule them all',
       true,
-      new Room('frodo', 'Frodo Baggins of the Shire')
+      'frodo-finger'
     );
     expect(ringOfPower.isDestroyed()).toBeFalsy();
     ringOfPower.destroy();
