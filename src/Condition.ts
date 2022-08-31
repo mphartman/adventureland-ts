@@ -1,5 +1,6 @@
 import { Command, GameState } from './Action';
-import { Room, Word } from './Adventure';
+import { Room } from './Room';
+import { Word } from './Vocabulary';
 
 export type Condition = (command: Command, state: GameState) => boolean;
 

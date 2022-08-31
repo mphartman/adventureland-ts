@@ -1,7 +1,9 @@
 import { AdventureScriptParser } from '../src/AdventureScriptParser';
 import fs from 'fs';
 import path from 'path';
-import { Adventure, Exit, Room, Word } from '../src/Adventure';
+import { Adventure } from '../src/Adventure';
+import { Exit, Room } from '../src/Room';
+import { Word } from '../src/Vocabulary';
 
 describe('AdventureScriptParser', () => {
   test('empty script throws error', () => {

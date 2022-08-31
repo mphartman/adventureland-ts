@@ -17,10 +17,61 @@ import {
   WordGroupContext,
 } from '../generated/grammar/AdventureParser';
 import { AdventureVisitor } from '../generated/grammar/AdventureVisitor';
-import { Adventure, Exit, Item, Room, Vocabulary, Word } from './Adventure';
+import { Adventure } from './Adventure';
 import { Action } from './Action';
 import { Condition, inRoom, not, random } from './Condition';
 import { Result, print } from './Result';
+import { Exit, Room } from './Room';
+import { Item } from './Item';
+import { Vocabulary, Word } from './Vocabulary';
+
+function rooms(ctx: AdventureContext): Room[] {
+  const visitor = new RoomDeclarationVisitor();
+  return ctx
+    .gameElement()
+    .map((context) => context.roomDeclaration()?.accept(visitor))
+    .filter((room) => room) as Room[];
+}
+
+function checkExits(rooms: Room[]): Room[] {
+  const names = rooms.map((room) => room.name);
+  for (const room of rooms) {
+    for (const exit of room.exits) {
+      const found = names.find((name) => name === exit.room);
+      if (!found) {
+        throw new Error(
+          `exit '${exit.direction}' of room '${room.name}' references a non-existing room '${exit.room}'`
+        );
+      }
+    }
+  }
+  return rooms;
+}
+
+function items(adventureContext: AdventureContext): Item[] {
+  const visitor = new ItemVisitor();
+  return adventureContext
+    .gameElement()
+    .map((context) => context.itemDeclaration()?.accept(visitor))
+    .filter((item) => item) as Item[];
+}
+
+function vocabulary(adventureContext: AdventureContext): Vocabulary {
+  const visitor = new VocabularyDeclarationVisitor();
+  const words = adventureContext
+    .gameElement()
+    .map((context) => context.vocabularyDeclaration()?.accept(visitor))
+    .filter((word) => word) as Word[];
+  return new Vocabulary(words);
+}
+
+function occurs(adventureContext: AdventureContext): Action[] {
+  const visitor = new OccursDeclarationVisitor();
+  return adventureContext
+    .gameElement()
+    .map((context) => context.occursDeclaration()?.accept(visitor))
+    .filter((occurs) => occurs) as Action[];
+}
 
 export class AdventureScriptParser {
   parse(adventureScriptText: string): Adventure {
@@ -53,59 +104,12 @@ class RealAdventureVisitor
   }
 
   visitAdventure(ctx: AdventureContext): Adventure {
-    const rooms = this.rooms(ctx);
-    this.checkExits(rooms);
-    const items = this.items(ctx);
-    const vocabulary = this.vocabulary(ctx);
-    const occurs = this.occurs(ctx);
-    return { rooms, items, occurs, vocabulary };
-  }
-
-  private rooms(ctx: AdventureContext): Room[] {
-    const visitor = new RoomDeclarationVisitor();
-    return ctx
-      .gameElement()
-      .map((context) => context.roomDeclaration()?.accept(visitor))
-      .filter((room) => room) as Room[];
-  }
-
-  private checkExits(rooms: Room[]): void {
-    const names = rooms.map((room) => room.name);
-    for (const room of rooms) {
-      for (const exit of room.exits) {
-        const found = names.find((name) => name === exit.room);
-        if (!found) {
-          throw new Error(
-            `exit '${exit.direction}' of room '${room.name}' references a non-existing room '${exit.room}'`
-          );
-        }
-      }
-    }
-  }
-
-  private items(adventureContext: AdventureContext): Item[] {
-    const visitor = new ItemVisitor();
-    return adventureContext
-      .gameElement()
-      .map((context) => context.itemDeclaration()?.accept(visitor))
-      .filter((item) => item) as Item[];
-  }
-
-  private vocabulary(adventureContext: AdventureContext): Vocabulary {
-    const visitor = new VocabularyDeclarationVisitor();
-    const words = adventureContext
-      .gameElement()
-      .map((context) => context.vocabularyDeclaration()?.accept(visitor))
-      .filter((word) => word) as Word[];
-    return new Vocabulary(words);
-  }
-
-  private occurs(adventureContext: AdventureContext): Action[] {
-    const visitor = new OccursDeclarationVisitor();
-    return adventureContext
-      .gameElement()
-      .map((context) => context.occursDeclaration()?.accept(visitor))
-      .filter((occurs) => occurs) as Action[];
+    return {
+      rooms: checkExits(rooms(ctx)),
+      items: items(ctx),
+      occurs: occurs(ctx),
+      vocabulary: vocabulary(ctx),
+    };
   }
 }
 

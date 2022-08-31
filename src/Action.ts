@@ -1,6 +1,7 @@
-import { Room, Word } from './Adventure';
 import { Condition } from './Condition';
 import { Result } from './Result';
+import { Room } from './Room';
+import { Word } from './Vocabulary';
 
 export type Command = Word[];
 
