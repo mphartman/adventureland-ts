@@ -2,21 +2,28 @@ import { CharStreams, CommonTokenStream } from 'antlr4ts';
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor';
 import { AdventureLexer } from '../generated/grammar/AdventureLexer';
 import {
+  ActionConditionDeclarationContext,
   AdventureContext,
   AdventureParser,
+  ConditionInRoomContext,
   ItemDeclarationContext,
   ItemInRoomContext,
   ItemIsInInventoryContext,
   ItemIsNowhereContext,
+  OccursDeclarationContext,
+  ResultPrintContext,
   RoomDeclarationContext,
   RoomExitContext,
   WordGroupContext,
 } from '../generated/grammar/AdventureParser';
 import { AdventureVisitor } from '../generated/grammar/AdventureVisitor';
 import { Adventure, Exit, Item, Room, Vocabulary, Word } from './Adventure';
+import { Action } from './Action';
+import { Condition, inRoom, not, random } from './Condition';
+import { Result, print } from './Result';
 
 export class AdventureScriptParser {
-  public readonly adventure: Adventure;
+  readonly adventure: Adventure;
 
   constructor(adventureScriptText: string) {
     const inputStream = CharStreams.fromString(adventureScriptText);
@@ -35,41 +42,44 @@ class RealAdventureVisitor
   }
 
   visitAdventure(ctx: AdventureContext): Adventure {
-    const rooms = this.getRooms(ctx);
-    const items = this.getItems(ctx);
-    const vocabulary = this.getVocabulary(ctx);
-    return { rooms, items, vocabulary };
+    const rooms = this.rooms(ctx);
+    const items = this.items(ctx);
+    const vocabulary = this.vocabulary(ctx);
+    const occurs = this.occurs(ctx);
+    return { rooms, items, occurs, vocabulary };
   }
 
-  private getRooms(adventureContext: AdventureContext): Room[] {
+  private rooms(adventureContext: AdventureContext): Room[] {
     const visitor = new RoomDeclarationVisitor();
     return adventureContext
       .gameElement()
-      .map((gameElementContext) =>
-        gameElementContext.roomDeclaration()?.accept(visitor)
-      )
+      .map((context) => context.roomDeclaration()?.accept(visitor))
       .filter((room) => room) as Room[];
   }
 
-  private getItems(adventureContext: AdventureContext): Item[] {
+  private items(adventureContext: AdventureContext): Item[] {
     const visitor = new ItemVisitor();
     return adventureContext
       .gameElement()
-      .map((gameElementContext) =>
-        gameElementContext.itemDeclaration()?.accept(visitor)
-      )
+      .map((context) => context.itemDeclaration()?.accept(visitor))
       .filter((item) => item) as Item[];
   }
 
-  private getVocabulary(adventureContext: AdventureContext): Vocabulary {
+  private vocabulary(adventureContext: AdventureContext): Vocabulary {
     const visitor = new VocabularyDeclarationVisitor();
     const words = adventureContext
       .gameElement()
-      .map((gameElementContext) =>
-        gameElementContext.vocabularyDeclaration()?.accept(visitor)
-      )
+      .map((context) => context.vocabularyDeclaration()?.accept(visitor))
       .filter((word) => word) as Word[];
     return new Vocabulary(words);
+  }
+
+  private occurs(adventureContext: AdventureContext): Action[] {
+    const visitor = new OccursDeclarationVisitor();
+    return adventureContext
+      .gameElement()
+      .map((context) => context.occursDeclaration()?.accept(visitor))
+      .filter((occurs) => occurs) as Action[];
   }
 }
 
@@ -86,7 +96,7 @@ class RoomDeclarationVisitor
     const exits = ctx
       .roomExits()
       ?.roomExit()
-      .map((roomExitContext) => roomExitContext.accept(roomExitVisitor));
+      .map((context) => context.accept(roomExitVisitor));
     return new Room(ctx.roomName().text, ctx.roomDescription().text, exits);
   }
 }
@@ -137,7 +147,7 @@ class ItemVisitor
     const aliases = ctx
       .itemAliases()
       ?.itemAlias()
-      .map((itemAliasContext) => itemAliasContext.text);
+      .map((context) => context.text);
     const portable = (aliases && aliases.length > 0) || location?.inventory;
     return new Item(name, description, portable, location?.room, aliases);
   }
@@ -161,11 +171,81 @@ class ItemLocationVisitor
     return { room: ctx.roomName().text };
   }
 
-  visitItemIsInInventory(_: ItemIsInInventoryContext) {
+  visitItemIsInInventory(ctx: ItemIsInInventoryContext) {
     return { inventory: true };
   }
 
-  visitItemIsNowhere(_: ItemIsNowhereContext) {
+  visitItemIsNowhere(ctx: ItemIsNowhereContext) {
     return { nowhere: true };
+  }
+}
+
+class OccursDeclarationVisitor
+  extends AbstractParseTreeVisitor<Action>
+  implements AdventureVisitor<Action>
+{
+  defaultResult(): Action {
+    return new Action([], []);
+  }
+
+  visitOccursDeclaration(ctx: OccursDeclarationContext) {
+    return new Action(this.conditions(ctx), this.results(ctx));
+  }
+
+  conditions(ctx: OccursDeclarationContext): Condition[] {
+    const visitor = new ActionConditionDeclarationVisitor();
+    const conditions = ctx
+      .actionConditionDeclaration()
+      .map((context) => context.accept(visitor));
+
+    const number = ctx.Number();
+    if (number && !Number.isNaN(number.text)) {
+      conditions.push(random(Number.parseInt(number.text)));
+    }
+
+    return conditions;
+  }
+
+  results(ctx: OccursDeclarationContext): Result[] {
+    const visitor = new ActionResultDeclarationVisitor();
+    return ctx
+      .actionResultDeclaration()
+      .map((context) => context.accept(visitor));
+  }
+}
+
+class ActionConditionDeclarationVisitor
+  extends AbstractParseTreeVisitor<Condition>
+  implements AdventureVisitor<Condition>
+{
+  defaultResult(): Condition {
+    return (command, state) => false;
+  }
+
+  visitActionConditionDeclaration(
+    ctx: ActionConditionDeclarationContext
+  ): Condition {
+    const condition = super.visitChildren(ctx);
+    if (ctx.NOT()) {
+      return not(condition);
+    }
+    return condition;
+  }
+
+  visitConditionInRoom(ctx: ConditionInRoomContext): Condition {
+    return inRoom(ctx.roomName().text);
+  }
+}
+
+class ActionResultDeclarationVisitor
+  extends AbstractParseTreeVisitor<Result>
+  implements AdventureVisitor<Result>
+{
+  defaultResult(): Result {
+    return (command, state, display) => false;
+  }
+
+  visitResultPrintln(ctx: ResultPrintContext): Result {
+    return print(ctx._message.text);
   }
 }

@@ -1,10 +1,12 @@
 import util from 'node:util';
+import { Action } from './Action';
 
 export class Adventure {
   constructor(
-    public readonly rooms?: readonly Room[],
-    public readonly items?: readonly Item[],
-    public readonly vocabulary?: Vocabulary
+    readonly rooms?: readonly Room[],
+    readonly items?: readonly Item[],
+    readonly occurs?: Action[],
+    readonly vocabulary?: Vocabulary
   ) {}
 }
 
@@ -14,7 +16,7 @@ export class Adventure {
  * E.g. A room can only have one North exit but the North and Up exits can both reference the same destination.
  */
 export class Room {
-  public static NOWHERE: Room = new Room(
+  static NOWHERE: Room = new Room(
     'nowhere',
     "I am no where.  It's dark and I am alone."
   );
@@ -29,40 +31,40 @@ export class Room {
     exits.forEach((exit) => this.#exitsByDirection.set(exit.direction, exit));
   }
 
-  public get exits(): readonly Exit[] {
+  get exits(): readonly Exit[] {
     return Array.from(this.#exitsByDirection.values());
   }
 
-  public setExit(exit: Exit) {
+  setExit(exit: Exit) {
     this.#exitsByDirection.set(exit.direction, exit);
   }
 
-  public hasExit(direction: Word): boolean {
+  hasExit(direction: Word): boolean {
     return this.#exitsByDirection.has(direction.name);
   }
 
-  public exit(direction: Word): string | undefined {
+  exit(direction: Word): string | undefined {
     return this.#exitsByDirection.get(direction.name)?.room;
   }
 
-  public equals(that: Room): boolean {
+  equals(that: Room): boolean {
     return util.isDeepStrictEqual(this, that);
   }
 }
 
 /**
- * A RoomExit is made up of a direction (e.g. North) and destination Room (i.e. where you end up after traveling in this RoomExit's direction).
+ * An Exit is made up of a direction (e.g. North) and destination Room (i.e. where you end up after traveling in this Exit's direction).
  */
 export class Exit {
   constructor(readonly direction: string, readonly room?: string) {}
 }
 
 export class Word {
-  public static UNRECGONIZED = new Word('<unrecognized>', [], false);
-  public static NONE = new Word('<none>');
-  public static ANY = new Word('<any>');
+  static UNRECGONIZED = new Word('<unrecognized>', [], false);
+  static NONE = new Word('<none>');
+  static ANY = new Word('<any>');
 
-  public static of(name: string | Word) {
+  static of(name: string | Word) {
     if (typeof name === 'string') {
       return new Word(name);
     } else {
@@ -70,7 +72,7 @@ export class Word {
     }
   }
 
-  public static unrecognized(name?: string) {
+  static unrecognized(name?: string) {
     return name ? new Word(name, [], false) : Word.UNRECGONIZED;
   }
 
@@ -86,11 +88,11 @@ export class Word {
     );
   }
 
-  public unrecognized() {
+  unrecognized() {
     return !this.recognized;
   }
 
-  public matches(that: Word): boolean {
+  matches(that: Word): boolean {
     if (this === that) return true;
     if (this.name === that.name) return true;
     if (this.unrecognized() && that.unrecognized()) return true;
@@ -102,13 +104,13 @@ export class Word {
     );
   }
 
-  public toString = (): string => {
+  toString = (): string => {
     return this.name;
   };
 }
 
 export class Vocabulary {
-  public readonly words: readonly Word[];
+  readonly words: readonly Word[];
 
   constructor(words: Word[]) {
     this.words = words.filter(
@@ -117,12 +119,12 @@ export class Vocabulary {
     );
   }
 
-  public findMatch(word: string | Word): Word | undefined {
+  findMatch(word: string | Word): Word | undefined {
     const wordToFind = Word.of(word);
     return this.words.find((w) => w.matches(wordToFind));
   }
 
-  public merge(vocabulary: Vocabulary): Vocabulary {
+  merge(vocabulary: Vocabulary): Vocabulary {
     const words = this.words.concat(vocabulary.words);
     return new Vocabulary(Array.from(words.values()));
   }
@@ -134,10 +136,10 @@ export class Item extends Word {
   #currentRoom?: string;
 
   constructor(
-    public readonly name: string,
-    public readonly description?: string,
-    public readonly portable: boolean = false,
-    public readonly startingRoom?: string,
+    readonly name: string,
+    readonly description?: string,
+    readonly portable: boolean = false,
+    readonly startingRoom?: string,
     aliases?: string[]
   ) {
     super(name, aliases);
@@ -147,44 +149,44 @@ export class Item extends Word {
     this.#currentRoom = startingRoom;
   }
 
-  public get currentRoom(): string | undefined {
+  get currentRoom(): string | undefined {
     return this.#currentRoom;
   }
 
-  public isHere(room: Room): boolean {
+  isHere(room: Room): boolean {
     return this.#currentRoom === room.name;
   }
 
-  public isCarried(): boolean {
+  isCarried(): boolean {
     return this.#currentRoom === Item.INVENTORY;
   }
 
-  public hasMoved(): boolean {
+  hasMoved(): boolean {
     return this.#currentRoom !== this.startingRoom;
   }
 
-  public drop(room: Room | string | undefined): string | undefined {
+  drop(room: Room | string | undefined): string | undefined {
     const formerRoom = this.#currentRoom;
     this.#currentRoom = typeof room === 'string' ? room : room?.name;
     return formerRoom;
   }
 
-  public stow(): string | undefined {
+  stow(): string | undefined {
     if (this.portable) {
       return this.drop(Item.INVENTORY);
     }
     throw new Error(`Cannot stow a non-portable item in player inventory`);
   }
 
-  public putWith(item: Item) {
+  putWith(item: Item) {
     this.drop(item.currentRoom);
   }
 
-  public destroy() {
+  destroy() {
     this.drop(undefined);
   }
 
-  public isDestroyed(): boolean {
+  isDestroyed(): boolean {
     return this.#currentRoom === undefined;
   }
 }
