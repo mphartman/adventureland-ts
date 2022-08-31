@@ -1,4 +1,4 @@
-import { Room, Exit, Vocabulary, Word, Item } from './Adventure';
+import { Room, Exit, Vocabulary, Word, Item } from '../src/Adventure';
 
 describe('Word', () => {
   it('should match Word with same name', () => {
