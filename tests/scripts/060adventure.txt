@@ -1,0 +1,9 @@
+// Tests repeated exit, last one wins
+room forest "I'm in a large forest with a lot of pine trees."
+    exit north meadow
+    exit south meadow
+    exit north swamp    // this wins, north will lead to the swamp
+
+room meadow "I'm in a beautiful meadow."
+
+room swamp "I'm in a smelly swamp."

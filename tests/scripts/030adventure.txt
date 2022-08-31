@@ -1,0 +1,3 @@
+// Tests exit back to self
+room bedroom "I'm in a large room with a small bed."
+    exit foobar

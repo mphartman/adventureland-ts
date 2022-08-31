@@ -7,8 +7,8 @@ export const main = () => {
     path.join(__dirname, '../', 'sample-adventure.txt'),
     'utf-8'
   );
-  const parser = new AdventureScriptParser(text);
-  const adventure = parser.adventure;
+  const parser = new AdventureScriptParser();
+  const adventure = parser.parse(text);
   console.log(JSON.stringify(adventure, null, 2));
 };
 

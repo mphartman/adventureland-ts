@@ -1,0 +1,2 @@
+// Tests a single room, no exits
+room bedroom "A small room with a \"large\" bed"

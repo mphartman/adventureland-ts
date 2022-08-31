@@ -1,0 +1,13 @@
+// Tests all valid room names
+room b          "A small room with a large bed"
+room b1         "A small room with a large bed"
+room b_e_d_r_   "A small room with a large bed"
+room b12_34a    "A small room with a large bed"
+room _12_34a    "A small room with a large bed"
+room _          "A small room with a large bed"
+room $          "A small room with a large bed"
+room $123       "A small room with a large bed"
+room _$         "A small room with a large bed"
+
+room aReallyLongObnoxiouslyLongRoomName_IMeanReally$ThisIsGettingABitRidiculous123456789_SeeDescriptionOnNextLine_ThatIsOkay
+    "A small room with a large bed"

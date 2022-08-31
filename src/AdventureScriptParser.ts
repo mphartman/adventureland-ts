@@ -23,13 +23,24 @@ import { Condition, inRoom, not, random } from './Condition';
 import { Result, print } from './Result';
 
 export class AdventureScriptParser {
-  readonly adventure: Adventure;
-
-  constructor(adventureScriptText: string) {
+  parse(adventureScriptText: string): Adventure {
     const inputStream = CharStreams.fromString(adventureScriptText);
     const lexer = new AdventureLexer(inputStream);
     const parser = new AdventureParser(new CommonTokenStream(lexer));
-    this.adventure = new RealAdventureVisitor().visit(parser.adventure());
+    parser.removeErrorListeners();
+    parser.addErrorListener({
+      syntaxError(
+        recognizer,
+        offendingSymbol,
+        line,
+        charPositionInLine,
+        msg,
+        e
+      ): void {
+        throw new Error(msg);
+      },
+    });
+    return new RealAdventureVisitor().visit(parser.adventure());
   }
 }
 
@@ -43,18 +54,33 @@ class RealAdventureVisitor
 
   visitAdventure(ctx: AdventureContext): Adventure {
     const rooms = this.rooms(ctx);
+    this.checkExits(rooms);
     const items = this.items(ctx);
     const vocabulary = this.vocabulary(ctx);
     const occurs = this.occurs(ctx);
     return { rooms, items, occurs, vocabulary };
   }
 
-  private rooms(adventureContext: AdventureContext): Room[] {
+  private rooms(ctx: AdventureContext): Room[] {
     const visitor = new RoomDeclarationVisitor();
-    return adventureContext
+    return ctx
       .gameElement()
       .map((context) => context.roomDeclaration()?.accept(visitor))
       .filter((room) => room) as Room[];
+  }
+
+  private checkExits(rooms: Room[]): void {
+    const names = rooms.map((room) => room.name);
+    for (const room of rooms) {
+      for (const exit of room.exits) {
+        const found = names.find((name) => name === exit.room);
+        if (!found) {
+          throw new Error(
+            `exit '${exit.direction}' of room '${room.name}' references a non-existing room '${exit.room}'`
+          );
+        }
+      }
+    }
   }
 
   private items(adventureContext: AdventureContext): Item[] {
@@ -92,12 +118,20 @@ class RoomDeclarationVisitor
   }
 
   visitRoomDeclaration(ctx: RoomDeclarationContext): Room {
+    const roomName = ctx.roomName().text;
     const roomExitVisitor = new RoomExitVisitor();
     const exits = ctx
       .roomExits()
       ?.roomExit()
-      .map((context) => context.accept(roomExitVisitor));
-    return new Room(ctx.roomName().text, ctx.roomDescription().text, exits);
+      .map((context) => context.accept(roomExitVisitor))
+      .map((exit) => {
+        // reference this room for exits with no other room reference
+        if (!exit.room) {
+          return { ...exit, room: roomName };
+        }
+        return exit;
+      });
+    return new Room(roomName, ctx.roomDescription().text, exits);
   }
 }
 

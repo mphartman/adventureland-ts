@@ -39,12 +39,16 @@ export class Room {
     this.#exitsByDirection.set(exit.direction, exit);
   }
 
-  hasExit(direction: Word): boolean {
-    return this.#exitsByDirection.has(direction.name);
+  hasExit(direction: Word | string): boolean {
+    return this.#exitsByDirection.has(
+      typeof direction === 'string' ? direction : direction.name
+    );
   }
 
-  exit(direction: Word): string | undefined {
-    return this.#exitsByDirection.get(direction.name)?.room;
+  exit(direction: Word | string): string | undefined {
+    return this.#exitsByDirection.get(
+      typeof direction === 'string' ? direction : direction.name
+    )?.room;
   }
 
   equals(that: Room): boolean {

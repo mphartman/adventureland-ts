@@ -87,6 +87,24 @@ describe('Room', () => {
     r.setExit(new Exit('north', 'river'));
     expect(r.exits[0]).toStrictEqual(new Exit('north', 'river'));
   });
+
+  it('should return room given a valid exit', () => {
+    const kitchen = new Room(
+      'kitchen',
+      'modern kitchen with granite countertops',
+      [new Exit('left', 'dining-room')]
+    );
+    const diningRoom = new Room(
+      'dining-room',
+      'spacious table with room to seat eight',
+      [new Exit('right', 'kitchen')]
+    );
+
+    expect(kitchen.hasExit(Word.of('left'))).toBeTruthy();
+    expect(diningRoom.hasExit(Word.of('right'))).toBeTruthy();
+    expect(kitchen.exit(Word.of('left'))).toEqual('dining-room');
+    expect(diningRoom.exit(Word.of('right'))).toEqual('kitchen');
+  });
 });
 
 describe('Item', () => {

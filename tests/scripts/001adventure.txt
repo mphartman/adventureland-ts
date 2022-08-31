@@ -1,0 +1,2 @@
+// Tests room description is required
+room kitchen

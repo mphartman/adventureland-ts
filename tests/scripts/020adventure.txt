@@ -1,0 +1,13 @@
+// Tests room exits
+
+/**
+ * room with single exit
+ */
+room bedroom "A small room with a large bed" exit north hallway
+
+/**
+ * room with two exits: one back to bedroom, other back to hallway (self-referencing)
+ */
+room hallway "A short narrow hallway."
+    exit south bedroom
+    exit north hallway

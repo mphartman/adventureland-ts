@@ -1,0 +1,2 @@
+// Tests room name is required
+room "A small room with a large bed"
