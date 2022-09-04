@@ -8,6 +8,7 @@ export class Adventure {
     readonly rooms?: readonly Room[],
     readonly items?: readonly Item[],
     readonly occurs?: Action[],
+    readonly actions?: Action[],
     readonly vocabulary?: Vocabulary
   ) {}
 }

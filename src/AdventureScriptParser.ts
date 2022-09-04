@@ -3,6 +3,12 @@ import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor
 import { AdventureLexer } from '../generated/grammar/AdventureLexer';
 import {
   ActionConditionDeclarationContext,
+  ActionDeclarationContext,
+  ActionWordAnyContext,
+  ActionWordDirectionContext,
+  ActionWordNoneContext,
+  ActionWordUnknownContext,
+  ActionWordWordContext,
   AdventureContext,
   AdventureParser,
   ConditionInRoomContext,
@@ -19,7 +25,14 @@ import {
 import { AdventureVisitor } from '../generated/grammar/AdventureVisitor';
 import { Adventure } from './Adventure';
 import { Action } from './Action';
-import { Condition, inRoom, not, random } from './Condition';
+import {
+  Condition,
+  inRoom,
+  not,
+  random,
+  wordMatches,
+  wordMatchesAny,
+} from './Condition';
 import { Result, print } from './Result';
 import { Exit, Room } from './Room';
 import { Item } from './Item';
@@ -73,6 +86,14 @@ function occurs(adventureContext: AdventureContext): Action[] {
     .filter((occurs) => occurs) as Action[];
 }
 
+function actions(adventureContext: AdventureContext): Action[] {
+  const visitor = new ActionsDeclarationVisitor();
+  return adventureContext
+    .gameElement()
+    .map((context) => context.actionDeclaration()?.accept(visitor))
+    .filter((action) => action) as Action[];
+}
+
 export class AdventureScriptParser {
   parse(adventureScriptText: string): Adventure {
     const inputStream = CharStreams.fromString(adventureScriptText);
@@ -91,7 +112,7 @@ export class AdventureScriptParser {
         throw new Error(msg);
       },
     });
-    return new RealAdventureVisitor().visit(parser.adventure());
+    return new RealAdventureVisitor().visitAdventure(parser.adventure());
   }
 }
 
@@ -108,6 +129,7 @@ class RealAdventureVisitor
       rooms: checkExits(rooms(ctx)),
       items: items(ctx),
       occurs: occurs(ctx),
+      actions: actions(ctx),
       vocabulary: vocabulary(ctx),
     };
   }
@@ -283,7 +305,91 @@ class ActionResultDeclarationVisitor
     return (command, state, display) => false;
   }
 
-  visitResultPrintln(ctx: ResultPrintContext): Result {
+  visitResultPrint(ctx: ResultPrintContext): Result {
     return print(ctx._message.text);
+  }
+}
+
+class ActionsDeclarationVisitor
+  extends AbstractParseTreeVisitor<Action>
+  implements AdventureVisitor<Action>
+{
+  defaultResult(): Action {
+    return new Action([], []);
+  }
+
+  visitActionDeclaration(ctx: ActionDeclarationContext): Action {
+    const conditions = this.command(ctx).concat(this.conditions(ctx));
+    return new Action(conditions, this.results(ctx));
+  }
+
+  command(ctx: ActionDeclarationContext): Condition[] {
+    const words: Word[] = [];
+    let pos = 1;
+    const conditions: Condition[] = [];
+    const visitor = new ActionWordVisitor();
+    for (const actionWordOrList of ctx.actionCommand().actionWordOrList()) {
+      const actionWord = actionWordOrList.actionWord();
+      if (actionWord) {
+        const word = actionWord.accept(visitor);
+        words.push(word);
+        conditions.push(wordMatches(pos++, word));
+      }
+      const actionWordList = actionWordOrList.actionWordList();
+      if (actionWordList) {
+        const wordList: Word[] = [];
+        for (const actionWord of actionWordList.actionWord()) {
+          const word = actionWord.accept(visitor);
+          words.push(word);
+          wordList.push(word);
+        }
+        conditions.push(wordMatchesAny(pos++, ...wordList));
+      }
+    }
+    return conditions;
+  }
+
+  conditions(ctx: ActionDeclarationContext): Condition[] {
+    const visitor = new ActionConditionDeclarationVisitor();
+    const conditions = ctx
+      .actionConditionDeclaration()
+      .map((context) => context.accept(visitor));
+    return conditions;
+  }
+
+  results(ctx: ActionDeclarationContext): Result[] {
+    const visitor = new ActionResultDeclarationVisitor();
+    return ctx
+      .actionResultDeclaration()
+      .map((context) => context.accept(visitor));
+  }
+}
+
+class ActionWordVisitor
+  extends AbstractParseTreeVisitor<Word>
+  implements AdventureVisitor<Word>
+{
+  defaultResult(): Word {
+    return Word.UNRECGONIZED;
+  }
+
+  visitActionWordWord(ctx: ActionWordWordContext): Word {
+    return Word.of(ctx.text);
+  }
+
+  visitActionWordDirection(ctx: ActionWordDirectionContext): Word {
+    return Word.of(ctx.exitDirection().text);
+  }
+
+  visitActionWordAny(ctx: ActionWordAnyContext): Word {
+    return Word.ANY;
+  }
+
+  visitActionWordNone(ctx: ActionWordNoneContext): Word {
+    return Word.NONE;
+  }
+
+  visitActionWordUnknown(ctx: ActionWordUnknownContext): Word {
+    return Word.UNRECGONIZED;
   }
 }
