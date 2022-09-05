@@ -12,6 +12,7 @@ import {
   AdventureContext,
   AdventureParser,
   ConditionInRoomContext,
+  GlobalParameterStartContext,
   ItemDeclarationContext,
   ItemInRoomContext,
   ItemIsInInventoryContext,
@@ -23,8 +24,8 @@ import {
   WordGroupContext,
 } from '../generated/grammar/AdventureParser';
 import { AdventureVisitor } from '../generated/grammar/AdventureVisitor';
-import { Adventure } from './Adventure';
 import { Action } from './Action';
+import { Adventure } from './Adventure';
 import {
   Condition,
   inRoom,
@@ -33,10 +34,26 @@ import {
   wordMatches,
   wordMatchesAny,
 } from './Condition';
-import { Result, print } from './Result';
-import { Exit, Room } from './Room';
 import { Item } from './Item';
+import { print, Result } from './Result';
+import { Exit, Room } from './Room';
 import { Vocabulary, Word } from './Vocabulary';
+
+function start(adventureContext: AdventureContext): string | undefined {
+  for (const param of adventureContext.globalParameter()) {
+    return param.accept<string | undefined>(
+      new (class extends AbstractParseTreeVisitor<string | undefined> {
+        defaultResult(): string | undefined {
+          return undefined;
+        }
+
+        visitGlobalParameterStart(ctx: GlobalParameterStartContext): string {
+          return ctx.startParameter().roomName().text;
+        }
+      })()
+    );
+  }
+}
 
 function rooms(ctx: AdventureContext): Room[] {
   const visitor = new RoomDeclarationVisitor();
@@ -121,11 +138,12 @@ class RealAdventureVisitor
   implements AdventureVisitor<Adventure>
 {
   defaultResult() {
-    return {};
+    return { rooms: [], actions: [], vocabulary: new Vocabulary([]) };
   }
 
   visitAdventure(ctx: AdventureContext): Adventure {
     return {
+      start: start(ctx),
       rooms: checkExits(rooms(ctx)),
       items: items(ctx),
       occurs: occurs(ctx),
