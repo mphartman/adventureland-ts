@@ -11,23 +11,54 @@ import {
   ActionWordWordContext,
   AdventureContext,
   AdventureParser,
+  ConditionCounterEqualsContext,
+  ConditionCounterGreaterThanContext,
+  ConditionCounterLessThanContext,
+  ConditionFlagIsTrueContext,
   ConditionInRoomContext,
+  ConditionItemCarriedContext,
+  ConditionItemExistsContext,
+  ConditionItemHasMovedContext,
+  ConditionItemIsHereContext,
+  ConditionItemIsPresentContext,
+  ConditionRoomHasExitContext,
   GlobalParameterStartContext,
   ItemDeclarationContext,
   ItemInRoomContext,
   ItemIsInInventoryContext,
   ItemIsNowhereContext,
   OccursDeclarationContext,
+  ResultDecrementCounterContext,
+  ResultDestroyContext,
+  ResultDropContext,
+  ResultGetContext,
+  ResultGoContext,
+  ResultGotoRoomContext,
+  ResultIncrementCounterContext,
+  ResultInventoryContext,
+  ResultLookContext,
   ResultPrintContext,
+  ResultPutContext,
+  ResultPutHereContext,
+  ResultPutWithContext,
+  ResultQuitContext,
+  ResultResetCounterContext,
+  ResultResetFlagContext,
+  ResultSetCounterContext,
+  ResultSetFlagContext,
+  ResultSetStringContext,
+  ResultSwapContext,
   RoomDeclarationContext,
   RoomExitContext,
   WordGroupContext,
 } from '../generated/grammar/AdventureParser';
 import { AdventureVisitor } from '../generated/grammar/AdventureVisitor';
-import { Action } from './Action';
+import { Action, Command, GameState } from './Action';
 import { Adventure } from './Adventure';
 import {
+  always,
   Condition,
+  notever,
   inRoom,
   not,
   random,
@@ -35,7 +66,27 @@ import {
   wordMatchesAny,
 } from './Condition';
 import { Item } from './Item';
-import { print, Result } from './Result';
+import {
+  decrementCounter,
+  destroy,
+  doNothing,
+  drop,
+  get,
+  incrementCounter,
+  inventory,
+  move,
+  print,
+  put,
+  putWith,
+  quit,
+  resetCounter,
+  resetFlag,
+  Result,
+  setCounter,
+  setFlag,
+  setString,
+  swap,
+} from './Result';
 import { Exit, Room } from './Room';
 import { Vocabulary, Word } from './Vocabulary';
 
@@ -313,6 +364,50 @@ class ActionConditionDeclarationVisitor
   visitConditionInRoom(ctx: ConditionInRoomContext): Condition {
     return inRoom(ctx.roomName().text);
   }
+
+  visitConditionItemCarried(ctx: ConditionItemCarriedContext): Condition {
+    return notever();
+  }
+
+  visitConditionItemIsHere(ctx: ConditionItemIsHereContext): Condition {
+    return notever();
+  }
+
+  visitConditionItemIsPresent(ctx: ConditionItemIsPresentContext): Condition {
+    return notever();
+  }
+
+  visitConditionItemExists(ctx: ConditionItemExistsContext): Condition {
+    return notever();
+  }
+
+  visitConditionItemHasMoved(ctx: ConditionItemHasMovedContext): Condition {
+    return notever();
+  }
+
+  visitConditionFlagIsTrue(ctx: ConditionFlagIsTrueContext): Condition {
+    return notever();
+  }
+
+  visitConditionCounterEquals(ctx: ConditionCounterEqualsContext): Condition {
+    return notever();
+  }
+
+  visitConditionCounterLessThan(
+    ctx: ConditionCounterLessThanContext
+  ): Condition {
+    return notever();
+  }
+
+  visitConditionCounterGreaterThan(
+    ctx: ConditionCounterGreaterThanContext
+  ): Condition {
+    return notever();
+  }
+
+  visitConditionRoomHasExit(ctx: ConditionRoomHasExitContext): Condition {
+    return notever();
+  }
 }
 
 class ActionResultDeclarationVisitor
@@ -325,6 +420,84 @@ class ActionResultDeclarationVisitor
 
   visitResultPrint(ctx: ResultPrintContext): Result {
     return print(ctx._message.text);
+  }
+
+  visitResultLook(ctx: ResultLookContext): Result {
+    return doNothing();
+  }
+
+  visitResultGo(ctx: ResultGoContext): Result {
+    return doNothing();
+  }
+
+  visitResultQuit(ctx: ResultQuitContext): Result {
+    return quit();
+  }
+
+  visitResultInventory(ctx: ResultInventoryContext): Result {
+    return inventory();
+  }
+
+  visitResultSwap(ctx: ResultSwapContext): Result {
+    return swap(ctx._i1.text, ctx._i2.text);
+  }
+
+  visitResultGotoRoom(ctx: ResultGotoRoomContext): Result {
+    return move(ctx.roomName().text);
+  }
+
+  visitResultPut(ctx: ResultPutContext): Result {
+    return put(ctx.itemName().text, ctx.roomName().text);
+  }
+
+  visitResultPutHere(ctx: ResultPutHereContext): Result {
+    return put(ctx.itemName().text);
+  }
+
+  visitResultGet(ctx: ResultGetContext): Result {
+    return get(ctx.itemName().text);
+  }
+
+  visitResultDrop(ctx: ResultDropContext): Result {
+    return drop(ctx.itemName().text);
+  }
+
+  visitResultPutWith(ctx: ResultPutWithContext): Result {
+    return putWith(ctx._i1.text, ctx._i2.text);
+  }
+
+  visitResultDestroy(ctx: ResultDestroyContext): Result {
+    return destroy(ctx.itemName().text);
+  }
+
+  visitResultSetFlag(ctx: ResultSetFlagContext): Result {
+    const name = ctx.word().text;
+    const val = ['yes', 'true', 'on'].includes(ctx.booleanValue().text);
+    return setFlag(name, val);
+  }
+
+  visitResultResetFlag(ctx: ResultResetFlagContext): Result {
+    return resetFlag(ctx.word().text);
+  }
+
+  visitResultSetCounter(ctx: ResultSetCounterContext): Result {
+    return setCounter(ctx.word().text, parseInt(ctx.Number().text));
+  }
+
+  visitResultIncrementCounter(ctx: ResultIncrementCounterContext): Result {
+    return incrementCounter(ctx.word().text);
+  }
+
+  visitResultDecrementCounter(ctx: ResultDecrementCounterContext): Result {
+    return decrementCounter(ctx.word().text);
+  }
+
+  visitResultResetCounter(ctx: ResultResetCounterContext): Result {
+    return resetCounter(ctx.word().text);
+  }
+
+  visitResultSetString(ctx: ResultSetStringContext): Result {
+    return setString(ctx._k.text, ctx._v.text);
   }
 }
 

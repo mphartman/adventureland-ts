@@ -1,4 +1,5 @@
 import { Condition } from './Condition';
+import { Item } from './Item';
 import { Result } from './Result';
 import { Room } from './Room';
 import { Word } from './Vocabulary';
@@ -7,6 +8,22 @@ export type Command = Word[];
 
 export interface GameState {
   currentRoom: Room;
+  quit: () => void;
+  inventory: (display: Display) => void;
+  swap: (item1: string, item2: string) => void;
+  move: (room: string) => void;
+  put: (item: string, room?: string) => void;
+  get: (item: string) => void;
+  drop: (item: string) => void;
+  putWith: (item1: string, item2: string) => void;
+  destroy: (item: string) => void;
+  setFlag: (name: string, val: boolean) => void;
+  resetFlag: (name: string) => void;
+  setCounter: (name: string, val: number) => void;
+  incrementCounter: (name: string) => void;
+  decrementCounter: (name: string) => void;
+  resetCounter: (name: string) => void;
+  setString: (key: string, value: string) => void;
 }
 
 export type Display = (text: string | undefined) => void;

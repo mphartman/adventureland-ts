@@ -4,6 +4,15 @@ import { Word } from './Vocabulary';
 
 export type Condition = (command: Command, state: GameState) => boolean;
 
+export function always(): Condition {
+  return (command, state) => true;
+}
+
+export function notever(): Condition {
+  // never is a reserved word
+  return (command, state) => false;
+}
+
 export function not(operand: Condition): Condition {
   return (command, state) => !operand(command, state);
 }
