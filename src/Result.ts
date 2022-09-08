@@ -14,6 +14,18 @@ export function print(message: string | undefined): Result {
   return (command, state, display) => display(message);
 }
 
+export function look(): Result {
+  return (command, state, display) => state.describe(display);
+}
+
+export function go(direction: string): Result {
+  return (command, state, display) => state.exitTowards(direction);
+}
+
+export function goInDirectionMatchingCommandWordAt(pos: number): Result {
+  return (command, state, display) => state.exitTowards(command[pos - 1]?.name);
+}
+
 export function quit(): Result {
   return (command, state, display) => state.quit();
 }

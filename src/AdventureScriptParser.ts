@@ -80,8 +80,11 @@ import {
   doNothing,
   drop,
   get,
+  go,
+  goInDirectionMatchingCommandWordAt,
   incrementCounter,
   inventory,
+  look,
   move,
   print,
   put,
@@ -417,15 +420,17 @@ class ActionConditionDeclarationVisitor
   }
 
   visitConditionRoomHasExit(ctx: ConditionRoomHasExitContext): Condition {
-    if (ctx.word()) {
+    if (!ctx.word()) {
       return hasExitMatchingCommandWordAt(1);
+    } else {
+      const word = ctx.word()?.text as string;
+      if (word.startsWith('$')) {
+        const pos = parseInt(word.substring(1));
+        return hasExitMatchingCommandWordAt(pos);
+      } else {
+        return hasExit(word);
+      }
     }
-    const word = ctx.word()?.text as string;
-    if (word.startsWith('$')) {
-      const pos = parseInt(word.substring(1));
-      return hasExitMatchingCommandWordAt(pos);
-    }
-    return hasExit(word);
   }
 }
 
@@ -442,11 +447,21 @@ class ActionResultDeclarationVisitor
   }
 
   visitResultLook(ctx: ResultLookContext): Result {
-    return doNothing();
+    return look();
   }
 
   visitResultGo(ctx: ResultGoContext): Result {
-    return doNothing();
+    if (!ctx.word()) {
+      return goInDirectionMatchingCommandWordAt(1);
+    } else {
+      const word = ctx.word()?.text as string;
+      if (word.startsWith('$')) {
+        const pos = parseInt(word.substring(1));
+        return goInDirectionMatchingCommandWordAt(pos);
+      } else {
+        return go(word);
+      }
+    }
   }
 
   visitResultQuit(ctx: ResultQuitContext): Result {

@@ -8,6 +8,8 @@ export type Command = Word[];
 
 export interface GameState {
   currentRoom: Room;
+  describe: (display: Display) => void;
+  exitTowards: (direction?: string) => void;
   quit: () => void;
   inventory: (display: Display) => void;
   swap: (item1: string, item2: string) => void;
