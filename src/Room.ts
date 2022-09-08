@@ -30,10 +30,14 @@ export class Room {
     this.#exitsByDirection.set(exit.direction, exit);
   }
 
-  hasExit(direction: Word | string): boolean {
-    return this.#exitsByDirection.has(
-      typeof direction === 'string' ? direction : direction.name
-    );
+  hasExit(direction: Word | string | undefined): boolean {
+    if (direction) {
+      return this.#exitsByDirection.has(
+        typeof direction === 'string' ? direction : direction.name
+      );
+    } else {
+      return false;
+    }
   }
 
   exit(direction: Word | string): string | undefined {

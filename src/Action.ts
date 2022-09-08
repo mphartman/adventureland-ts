@@ -24,6 +24,13 @@ export interface GameState {
   decrementCounter: (name: string) => void;
   resetCounter: (name: string) => void;
   setString: (key: string, value: string) => void;
+  carrying: (item: string) => boolean;
+  here: (item: string, room?: string) => boolean;
+  hasMoved: (item: string) => boolean;
+  exists: (item: string) => boolean;
+  isFlagSet: (name: string) => boolean;
+  getCounter: (name: string) => number;
+  getString: (name: string) => string | undefined;
 }
 
 export type Display = (text: string | undefined) => void;

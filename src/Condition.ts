@@ -9,7 +9,6 @@ export function always(): Condition {
 }
 
 export function notever(): Condition {
-  // never is a reserved word
   return (command, state) => false;
 }
 
@@ -40,11 +39,58 @@ export function wordUnrecognized(position: number): Condition {
   return (command, state) => !command[position - 1]?.recognized;
 }
 
+export function hasExit(direction?: string): Condition {
+  return (command, state) => state.currentRoom.hasExit(direction);
+}
+
+export function hasExitMatchingCommandWordAt(pos: number): Condition {
+  return (command, state) => state.currentRoom.hasExit(command[pos - 1]);
+}
+
 export function inRoom(room: Room | string): Condition {
   if (typeof room === 'string') {
     return (command, state) => state.currentRoom.name === room;
   }
   return (command, state) => state.currentRoom.equals(room);
+}
+
+export function carrying(item: string): Condition {
+  return (command, state) => state.carrying(item);
+}
+
+export function here(item: string): Condition {
+  return (command, state) => state.here(item);
+}
+
+export function present(item: string): Condition {
+  return or(carrying(item), here(item));
+}
+
+export function hasMoved(item: string): Condition {
+  return (command, state) => state.hasMoved(item);
+}
+
+export function there(item: string, room: string): Condition {
+  return (command, state) => state.here(item, room);
+}
+
+export function exists(item: string): Condition {
+  return (command, state) => state.exists(item);
+}
+
+export function isFlagSet(name: string): Condition {
+  return (command, state) => state.isFlagSet(name);
+}
+
+export function compareCounter(
+  name: string,
+  test: (i: number) => boolean
+): Condition {
+  return (command, state) => test(state.getCounter(name));
+}
+
+export function stringEquals(name: string, value: string): Condition {
+  return (command, state) => value === state.getString(name);
 }
 
 export function random(

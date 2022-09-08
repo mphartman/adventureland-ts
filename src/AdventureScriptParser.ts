@@ -53,14 +53,22 @@ import {
   WordGroupContext,
 } from '../generated/grammar/AdventureParser';
 import { AdventureVisitor } from '../generated/grammar/AdventureVisitor';
-import { Action, Command, GameState } from './Action';
+import { Action } from './Action';
 import { Adventure } from './Adventure';
 import {
-  always,
+  carrying,
+  compareCounter,
   Condition,
-  notever,
+  exists,
+  hasExit,
+  hasExitMatchingCommandWordAt,
+  hasMoved,
+  here,
   inRoom,
+  isFlagSet,
   not,
+  notever,
+  present,
   random,
   wordMatches,
   wordMatchesAny,
@@ -348,7 +356,7 @@ class ActionConditionDeclarationVisitor
   implements AdventureVisitor<Condition>
 {
   defaultResult(): Condition {
-    return (command, state) => false;
+    return notever();
   }
 
   visitActionConditionDeclaration(
@@ -366,47 +374,58 @@ class ActionConditionDeclarationVisitor
   }
 
   visitConditionItemCarried(ctx: ConditionItemCarriedContext): Condition {
-    return notever();
+    return carrying(ctx.itemName().text);
   }
 
   visitConditionItemIsHere(ctx: ConditionItemIsHereContext): Condition {
-    return notever();
+    return here(ctx.itemName().text);
   }
 
   visitConditionItemIsPresent(ctx: ConditionItemIsPresentContext): Condition {
-    return notever();
+    return present(ctx.itemName().text);
   }
 
   visitConditionItemExists(ctx: ConditionItemExistsContext): Condition {
-    return notever();
+    return exists(ctx.itemName().text);
   }
 
   visitConditionItemHasMoved(ctx: ConditionItemHasMovedContext): Condition {
-    return notever();
+    return hasMoved(ctx.itemName().text);
   }
 
   visitConditionFlagIsTrue(ctx: ConditionFlagIsTrueContext): Condition {
-    return notever();
+    return isFlagSet(ctx.word().text);
   }
 
   visitConditionCounterEquals(ctx: ConditionCounterEqualsContext): Condition {
-    return notever();
+    const num = parseInt(ctx.Number().text);
+    return compareCounter(ctx.word().text, (val) => val === num);
   }
 
   visitConditionCounterLessThan(
     ctx: ConditionCounterLessThanContext
   ): Condition {
-    return notever();
+    const num = parseInt(ctx.Number().text);
+    return compareCounter(ctx.word().text, (val) => val < num);
   }
 
   visitConditionCounterGreaterThan(
     ctx: ConditionCounterGreaterThanContext
   ): Condition {
-    return notever();
+    const num = parseInt(ctx.Number().text);
+    return compareCounter(ctx.word().text, (val) => val > num);
   }
 
   visitConditionRoomHasExit(ctx: ConditionRoomHasExitContext): Condition {
-    return notever();
+    if (ctx.word()) {
+      return hasExitMatchingCommandWordAt(1);
+    }
+    const word = ctx.word()?.text as string;
+    if (word.startsWith('$')) {
+      const pos = parseInt(word.substring(1));
+      return hasExitMatchingCommandWordAt(pos);
+    }
+    return hasExit(word);
   }
 }
 
