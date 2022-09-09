@@ -4,10 +4,7 @@ import { AdventureLexer } from '../generated/grammar/AdventureLexer';
 import {
   ActionConditionDeclarationContext,
   ActionDeclarationContext,
-  ActionWordAnyContext,
   ActionWordDirectionContext,
-  ActionWordNoneContext,
-  ActionWordUnknownContext,
   ActionWordWordContext,
   AdventureContext,
   AdventureParser,
@@ -25,8 +22,6 @@ import {
   GlobalParameterStartContext,
   ItemDeclarationContext,
   ItemInRoomContext,
-  ItemIsInInventoryContext,
-  ItemIsNowhereContext,
   OccursDeclarationContext,
   ResultDecrementCounterContext,
   ResultDestroyContext,
@@ -35,13 +30,10 @@ import {
   ResultGoContext,
   ResultGotoRoomContext,
   ResultIncrementCounterContext,
-  ResultInventoryContext,
-  ResultLookContext,
   ResultPrintContext,
   ResultPutContext,
   ResultPutHereContext,
   ResultPutWithContext,
-  ResultQuitContext,
   ResultResetCounterContext,
   ResultResetFlagContext,
   ResultSetCounterContext,
@@ -77,7 +69,6 @@ import { Item } from './Item';
 import {
   decrementCounter,
   destroy,
-  doNothing,
   drop,
   get,
   go,
@@ -181,12 +172,11 @@ export class AdventureScriptParser {
     parser.removeErrorListeners();
     parser.addErrorListener({
       syntaxError(
-        recognizer,
-        offendingSymbol,
-        line,
-        charPositionInLine,
-        msg,
-        e
+        _recognizer,
+        _offendingSymbol,
+        _line,
+        _charPositionInLine,
+        msg
       ): void {
         throw new Error(msg);
       },
@@ -311,11 +301,11 @@ class ItemLocationVisitor
     return { room: ctx.roomName().text };
   }
 
-  visitItemIsInInventory(ctx: ItemIsInInventoryContext) {
+  visitItemIsInInventory() {
     return { inventory: true };
   }
 
-  visitItemIsNowhere(ctx: ItemIsNowhereContext) {
+  visitItemIsNowhere() {
     return { nowhere: true };
   }
 }
@@ -439,14 +429,14 @@ class ActionResultDeclarationVisitor
   implements AdventureVisitor<Result>
 {
   defaultResult(): Result {
-    return (command, state, display) => false;
+    return () => false;
   }
 
   visitResultPrint(ctx: ResultPrintContext): Result {
     return print(ctx._message.text);
   }
 
-  visitResultLook(ctx: ResultLookContext): Result {
+  visitResultLook(): Result {
     return look();
   }
 
@@ -464,11 +454,11 @@ class ActionResultDeclarationVisitor
     }
   }
 
-  visitResultQuit(ctx: ResultQuitContext): Result {
+  visitResultQuit(): Result {
     return quit();
   }
 
-  visitResultInventory(ctx: ResultInventoryContext): Result {
+  visitResultInventory(): Result {
     return inventory();
   }
 
@@ -606,15 +596,15 @@ class ActionWordVisitor
     return Word.of(ctx.exitDirection().text);
   }
 
-  visitActionWordAny(ctx: ActionWordAnyContext): Word {
+  visitActionWordAny(): Word {
     return Word.ANY;
   }
 
-  visitActionWordNone(ctx: ActionWordNoneContext): Word {
+  visitActionWordNone(): Word {
     return Word.NONE;
   }
 
-  visitActionWordUnknown(ctx: ActionWordUnknownContext): Word {
+  visitActionWordUnknown(): Word {
     return Word.UNRECGONIZED;
   }
 }

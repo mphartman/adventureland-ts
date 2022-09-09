@@ -1,0 +1,10 @@
+// Tests start directive specifies which room to start the adventure in.
+start meadow
+
+room lake_shore "I'm on the shore of a small lake."
+
+room forest "I'm in a large forest with a lot of pine trees."
+
+room meadow "I'm in a beautiful meadow."
+
+room swamp "I'm in a smelly swamp."

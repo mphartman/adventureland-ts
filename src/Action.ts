@@ -1,5 +1,4 @@
 import { Condition } from './Condition';
-import { Item } from './Item';
 import { Result } from './Result';
 import { Room } from './Room';
 import { Word } from './Vocabulary';

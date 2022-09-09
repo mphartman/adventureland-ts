@@ -1,0 +1,2 @@
+// Tests item without description is invalid syntax
+item key

@@ -1,3 +1,4 @@
+import 'jest-extended';
 import { AdventureScriptParser } from '../src/AdventureScriptParser';
 import fs from 'fs';
 import path from 'path';
@@ -73,6 +74,12 @@ describe('AdventureScriptParser', () => {
       const adventure = parse('060adventure.txt');
       expect(adventure.rooms?.[0].exit('north')).toBe('swamp');
     });
+
+    test('start set to correct room', () => {
+      const adventure = parse('070adventure.txt');
+      expect(adventure.start).toBe('meadow');
+      expect(adventure.rooms).toSatisfyAny((room) => room.name === 'meadow');
+    });
   });
 
   describe('Actions', () => {
@@ -99,7 +106,15 @@ describe('AdventureScriptParser', () => {
       const result = action.results?.[0] as Result;
       const display = jest.fn();
       result([], {} as GameState, display);
-      expect(display).toBeCalledWith('It works');
+      expect(display).toHaveBeenCalledWith('It works');
+    });
+  });
+
+  describe('Items', () => {
+    test('item missing description throws', () => {
+      expect(() => parse('100adventure.txt')).toThrow(
+        "missing StringLiteral at '<EOF>'"
+      );
     });
   });
 });
