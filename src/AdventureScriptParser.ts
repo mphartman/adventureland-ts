@@ -92,25 +92,19 @@ import {
 import { Exit, Room } from './Room';
 import { Vocabulary, Word } from './Vocabulary';
 
-function start(adventureContext: AdventureContext): string | undefined {
-  for (const param of adventureContext.globalParameter()) {
-    return param.accept<string | undefined>(
-      new (class extends AbstractParseTreeVisitor<string | undefined> {
-        defaultResult(): string | undefined {
-          return undefined;
-        }
+type OptionalString = string | undefined;
 
-        visitGlobalParameterStart(ctx: GlobalParameterStartContext): string {
-          return ctx.startParameter().roomName().text;
-        }
-      })()
-    );
-  }
+function start(adventureContext: AdventureContext): OptionalString {
+  const visitor = new GlobalParameterStartVisitor();
+  return adventureContext
+    .globalParameter()
+    .map((parameter) => parameter.accept(visitor))
+    .find((value, index) => (index === 0 ? value : undefined));
 }
 
-function rooms(ctx: AdventureContext): Room[] {
+function rooms(adventureContext: AdventureContext): Room[] {
   const visitor = new RoomDeclarationVisitor();
-  return ctx
+  return adventureContext
     .gameElement()
     .map((context) => context.roomDeclaration()?.accept(visitor))
     .filter((room) => room) as Room[];
@@ -202,6 +196,19 @@ class RealAdventureVisitor
       actions: actions(ctx),
       vocabulary: vocabulary(ctx),
     };
+  }
+}
+
+class GlobalParameterStartVisitor
+  extends AbstractParseTreeVisitor<OptionalString>
+  implements AdventureVisitor<OptionalString>
+{
+  protected defaultResult(): OptionalString {
+    return undefined;
+  }
+
+  visitGlobalParameterStart(ctx: GlobalParameterStartContext): OptionalString {
+    return ctx.startParameter().roomName().text;
   }
 }
 
@@ -566,10 +573,9 @@ class ActionsDeclarationVisitor
 
   conditions(ctx: ActionDeclarationContext): Condition[] {
     const visitor = new ActionConditionDeclarationVisitor();
-    const conditions = ctx
+    return ctx
       .actionConditionDeclaration()
       .map((context) => context.accept(visitor));
-    return conditions;
   }
 
   results(ctx: ActionDeclarationContext): Result[] {
