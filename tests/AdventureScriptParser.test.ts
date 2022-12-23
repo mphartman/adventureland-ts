@@ -1,7 +1,7 @@
 import 'jest-extended';
-import { AdventureScriptParser } from '../src/AdventureScriptParser';
 import fs from 'fs';
 import path from 'path';
+import { AdventureScriptParser } from '../src/AdventureScriptParser';
 import { Adventure } from '../src/Adventure';
 import { Exit, Room } from '../src/Room';
 import { Word } from '../src/Vocabulary';
@@ -78,7 +78,10 @@ describe('AdventureScriptParser', () => {
     test('start set to correct room', () => {
       const adventure = parse('070adventure.txt');
       expect(adventure.start).toBe('meadow');
-      expect(adventure.rooms).toSatisfyAny((room) => room.name === 'meadow');
+      expect(adventure.rooms).toContainEqual({
+        description: "I'm in a beautiful meadow.",
+        name: 'meadow',
+      });
     });
   });
 
@@ -114,6 +117,25 @@ describe('AdventureScriptParser', () => {
     test('item missing description throws', () => {
       expect(() => parse('100adventure.txt')).toThrow(
         "missing StringLiteral at '<EOF>'"
+      );
+    });
+
+    test('item without name is invalid syntax', () => {
+      expect(() => parse('101adventure.txt')).toThrow(
+        "missing Identifier at 'A brass key'"
+      );
+    });
+
+    test('valid item', () => {
+      const adventure = parse('102adventure.txt');
+      expect(adventure.items).toHaveLength(1);
+      expect(adventure.items?.[0]).toEqual(
+        expect.objectContaining({
+          name: 'key',
+          description: 'A brass key',
+          portable: false,
+          startingRoom: undefined,
+        })
       );
     });
   });

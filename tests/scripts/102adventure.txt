@@ -1,0 +1,4 @@
+// Tests a valid item
+item
+    key
+    "A brass key"

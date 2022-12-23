@@ -1,0 +1,2 @@
+// Tests item without name is invalid syntax
+item "A brass key"
