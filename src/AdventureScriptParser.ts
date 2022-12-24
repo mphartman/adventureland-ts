@@ -179,11 +179,16 @@ export class AdventureScriptParser {
       parser.adventure()
     );
 
-    const everyItemInExistingRoom = adventure.items?.every((item) =>
-      adventure.rooms.find((room) => room.name === item.currentRoom)
-    );
-    if (!everyItemInExistingRoom) {
-      throw new Error('One or more items reference non-existent rooms');
+    if (adventure.items?.length) {
+      const everyItemInExistingRoom = adventure.items?.every(
+        (item) =>
+          item.currentRoom === Room.NOWHERE.name ||
+          item.currentRoom === Room.INVENTORY.name ||
+          adventure.rooms.find((room) => room.name === item.currentRoom)
+      );
+      if (!everyItemInExistingRoom) {
+        throw new Error('One or more items reference non-existent rooms');
+      }
     }
 
     return adventure;
