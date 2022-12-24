@@ -128,15 +128,42 @@ describe('AdventureScriptParser', () => {
 
     test('valid item', () => {
       const adventure = parse('102adventure.txt');
-      expect(adventure.items).toHaveLength(1);
-      expect(adventure.items?.[0]).toEqual(
-        expect.objectContaining({
-          name: 'key',
-          description: 'A brass key',
-          portable: false,
-          startingRoom: undefined,
-        })
-      );
+      const items = adventure.items;
+      expect(items).toHaveLength(1);
+      expect(items).toContainEqual({
+        description: 'A brass key',
+        name: 'key',
+        portable: false,
+        recognized: true,
+        startingRoom: undefined,
+        synonyms: [],
+      });
+    });
+
+    test('valid item with aliases', () => {
+      const adventure = parse('103adventure.txt');
+      expect(adventure.items).toContainEqual({
+        description: 'A greatsword',
+        name: 'sword',
+        portable: true,
+        startingRoom: Room.NOWHERE.name,
+        recognized: true,
+        synonyms: expect.arrayContaining([
+          'excalibur',
+          'nightblade',
+          'sharpie',
+        ]),
+      });
+    });
+
+    test('items in valid locations', () => {
+      const adventure = parse('104adventure.txt');
+      const items = adventure.items;
+      expect(items).toContainItemInRoom('fork', 'kitchen');
+      expect(items).toContainItemInRoom('chest', 'hallway');
+      expect(items).toContainItemInRoom('spoon', 'kitchen');
+      expect(items).toContainItemInRoom('knife', Room.NOWHERE);
+      expect(items).toContainItemInRoom('flint', Room.INVENTORY);
     });
   });
 });

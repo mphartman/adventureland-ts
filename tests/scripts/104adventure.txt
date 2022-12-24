@@ -1,0 +1,22 @@
+// Tests an item at a location
+item lamp "a lamp"
+    nowhere
+
+room hallway "hallway"
+
+room kitchen "a kitchen"
+
+item fork "a fork"
+    at kitchen
+
+item chest "a chest"
+    at hallway
+
+item spoon "a spoon"
+    in kitchen
+
+item knife "a knife"
+    nowhere
+
+item flint "flint & steel"
+    inventory
