@@ -1,0 +1,3 @@
+// Tests action with verb and GO result
+action flee north
+    then go $2

@@ -1,0 +1,10 @@
+// Tests action with verb swap result
+
+room cell "a jail cell"
+
+item locked_door "a locked door" at cell
+
+item open_door "an open door" nowhere
+
+action unlock door
+    then swap locked_door open_door
