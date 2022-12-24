@@ -165,6 +165,10 @@ describe('AdventureScriptParser', () => {
       expect(items).toContainItemInRoom('knife', Room.NOWHERE);
       expect(items).toContainItemInRoom('flint', Room.INVENTORY);
     });
+
+    test('items in invalid location throws', () => {
+      expect(() => parse('105adventure.txt')).toThrow();
+    });
   });
 });
 
