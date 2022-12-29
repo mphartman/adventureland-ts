@@ -90,17 +90,10 @@ import {
   swap,
 } from './Result';
 import { Exit, Room } from './Room';
-import { Vocabulary, Word } from './Vocabulary';
+import { Vocabulary } from './Vocabulary';
+import { Word } from './Word';
 
 type OptionalString = string | undefined;
-
-function startingRoom(adventureContext: AdventureContext): OptionalString {
-  const visitor = new GlobalParameterStartVisitor();
-  return adventureContext
-    .globalParameter()
-    .map((parameter) => parameter.accept(visitor))
-    .find((value, index) => (index === 0 ? value : undefined));
-}
 
 function rooms(adventureContext: AdventureContext): Room[] {
   const visitor = new RoomDeclarationVisitor();
@@ -110,19 +103,12 @@ function rooms(adventureContext: AdventureContext): Room[] {
     .filter((room) => room) as Room[];
 }
 
-function checkExits(rooms: Room[]): Room[] {
-  const names = rooms.map((room) => room.name);
-  for (const room of rooms) {
-    for (const exit of room.exits) {
-      const found = names.find((name) => name === exit.room);
-      if (!found) {
-        throw new Error(
-          `exit '${exit.direction}' of room '${room.name}' references a non-existing room '${exit.room}'`
-        );
-      }
-    }
-  }
-  return rooms;
+function startingRoomName(adventureContext: AdventureContext): OptionalString {
+  const visitor = new GlobalParameterStartVisitor();
+  return adventureContext
+    .globalParameter()
+    .map((parameter) => parameter.accept(visitor))
+    .find((value, index) => (index === 0 ? value : undefined));
 }
 
 function items(adventureContext: AdventureContext): Item[] {
@@ -158,6 +144,34 @@ function actions(adventureContext: AdventureContext): Action[] {
     .filter((action) => action) as Action[];
 }
 
+function checkExits(rooms: Room[]) {
+  const names = rooms.map((room) => room.name);
+  for (const room of rooms) {
+    for (const exit of room.exits) {
+      const found = names.find((name) => name === exit.room);
+      if (!found) {
+        throw new Error(
+          `exit '${exit.direction}' of room '${room.name}' references a non-existing room '${exit.room}'`
+        );
+      }
+    }
+  }
+}
+
+function checkItems(items: Item[] | undefined, rooms: Room[]) {
+  if (items?.length) {
+    const everyItemInExistingRoom = items?.every(
+      (item) =>
+        item.currentRoom === Room.NOWHERE.name ||
+        item.currentRoom === Room.INVENTORY.name ||
+        rooms.find((room) => room.name === item.currentRoom)
+    );
+    if (!everyItemInExistingRoom) {
+      throw new Error('One or more items reference non-existent rooms');
+    }
+  }
+}
+
 export class AdventureScriptParser {
   parse(adventureScriptText: string): Adventure {
     const inputStream = CharStreams.fromString(adventureScriptText);
@@ -175,21 +189,16 @@ export class AdventureScriptParser {
         throw new Error(msg);
       },
     });
+
     const adventure = new RealAdventureVisitor().visitAdventure(
       parser.adventure()
     );
 
-    if (adventure.items?.length) {
-      const everyItemInExistingRoom = adventure.items?.every(
-        (item) =>
-          item.currentRoom === Room.NOWHERE.name ||
-          item.currentRoom === Room.INVENTORY.name ||
-          adventure.rooms.find((room) => room.name === item.currentRoom)
-      );
-      if (!everyItemInExistingRoom) {
-        throw new Error('One or more items reference non-existent rooms');
-      }
-    }
+    // validate
+    // each rooms exits reference a room which exists
+    checkExits(adventure.rooms);
+    // is each item in a room which exists
+    checkItems(adventure.items, adventure.rooms);
 
     return adventure;
   }
@@ -200,17 +209,31 @@ class RealAdventureVisitor
   implements AdventureVisitor<Adventure>
 {
   defaultResult() {
-    return { rooms: [], actions: [], vocabulary: new Vocabulary([]) };
+    return new Adventure();
   }
 
   visitAdventure(ctx: AdventureContext): Adventure {
+    const theRooms = rooms(ctx);
+
+    const theStartingRoomName = startingRoomName(ctx);
+    let startingRoom = theRooms.find(
+      (room) => room.name === theStartingRoomName
+    );
+    if (startingRoom === undefined) {
+      if (theRooms.length > 0) {
+        startingRoom = theRooms[0];
+      } else {
+        startingRoom = Room.NOWHERE;
+      }
+    }
+
     return {
-      start: startingRoom(ctx),
-      rooms: checkExits(rooms(ctx)),
-      items: items(ctx),
-      occurs: occurs(ctx),
-      actions: actions(ctx),
       vocabulary: vocabulary(ctx),
+      rooms: theRooms,
+      startingRoom: startingRoom,
+      items: items(ctx),
+      actions: actions(ctx),
+      occurs: occurs(ctx),
     };
   }
 }
@@ -456,7 +479,10 @@ class ActionResultDeclarationVisitor
   }
 
   visitResultPrint(ctx: ResultPrintContext): Result {
-    return print(ctx._message.text);
+    if (ctx._message.text) {
+      return print(ctx._message.text);
+    }
+    return this.defaultResult();
   }
 
   visitResultLook(): Result {

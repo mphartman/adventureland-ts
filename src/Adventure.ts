@@ -5,11 +5,11 @@ import { Vocabulary } from './Vocabulary';
 
 export class Adventure {
   constructor(
-    readonly rooms: readonly Room[],
-    readonly vocabulary: Vocabulary,
-    readonly actions?: Action[],
-    readonly items?: readonly Item[],
-    readonly occurs?: Action[],
-    readonly start?: string
+    readonly vocabulary: Vocabulary = new Vocabulary([]),
+    readonly rooms: Room[] = [],
+    readonly startingRoom: Room = Room.NOWHERE,
+    readonly items: Item[] = [],
+    readonly actions: Action[] = [],
+    readonly occurs: Action[] = []
   ) {}
 }

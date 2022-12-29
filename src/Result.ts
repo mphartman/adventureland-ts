@@ -1,4 +1,6 @@
-import { Command, Display, GameState } from './Action';
+import { Command } from './Action';
+import { GameState } from './GameState';
+import { Display } from './Display';
 
 export type Result = (
   command: Command,
@@ -6,8 +8,8 @@ export type Result = (
   display: Display
 ) => void;
 
-export function print(message: string | undefined): Result {
-  return (_command, _state, display) => display(message);
+export function print(message: string): Result {
+  return (_command, state, display) => state.print(display, message);
 }
 
 export function look(): Result {

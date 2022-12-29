@@ -1,0 +1,230 @@
+##
+## Example Adventure 1 - Van Escape
+##
+
+##
+## Parameters
+##
+
+    start back_seat
+
+
+##
+##  Rooms
+##
+
+    room front_seat "I'm in the front seat of the van. There is a back seat. There's a dash with a lot of buttons and dials."
+
+    room back_seat "I'm in the back seat of the van. There is a front seat."
+
+    room outside "I'm outside the van."
+
+##
+## Items
+##
+
+    // none
+
+##
+## Occurs
+##
+
+    occurs
+        when !flag init
+        then set_flag doors_locked on
+            and set_flag init yes
+
+    occurs
+        when at outside
+        then print "I made it out."
+            and quit
+
+/*
+ *
+ *  Introduction
+ *
+ */
+
+    occurs
+        when !flag intro_shown
+        then set_flag intro_shown yes
+            and print "
+     ______________________...........____
+   ,';---------.===================--''''''' ._
+  /.'         :'    :     : :     `.           `.
+ [:          ::    :`    : :    .--.`.           `.
+ [:__________||____:_____: :____\__|\_`____________`_
+ |            |         . | .          '..            `--._
+ | _ _ _ _ _ _' _ _ _ _ ' | ' _ _ _ _ _ _ `-_._____________..
+ |     ___    \           \           ___    (_|___|____,__||
+ |   .',..'.  |           |         ,'   `.  (_|___|____`__||
+,|_ _|/.''..\_| _ _ _ _ _ |_ _ _ _ .  .''''`.           ____.\
+`____|:`(): :\|___________|________|.' .'_`.| ------'''.---. /
+   ==':'..' :`  `'  \ :: ,---------': :-(_)-:\         |__,''
+       '...'         `--'            \ `...'  :-----:;;:'`
+                                      '......'
+"
+        and look
+
+    occurs
+        when in front_seat
+            and flag doors_locked
+        then print "The doors are locked."
+
+    occurs
+        when in front_seat
+            and not flag doors_locked
+        then print "The doors are NOT locked."
+
+    occurs
+        when not in outside
+        then print "What should I do?"
+
+##
+## Actions
+##
+
+    action open (door, doors)
+        when in front_seat
+            and flag doors_locked
+        then print "I can't open the door. I need to unlock it first."
+
+    action open (door, doors)
+        when in front_seat
+            and not flag doors_locked
+        then goto outside
+            and print "Freedom!"
+
+    action unlock (door, doors)
+        when in front_seat
+            and flag doors_locked
+        then print "But I don't know how. Maybe if I look at the dash I might find a way."
+
+    action (open, unlock) (door, doors)
+        when in back_seat
+        then print "I can't do that from back here. I have to be in the front seat."
+
+    action (examine, "look") dash
+        when in front_seat
+        then print "I see a button with a picture of a key on it. I wonder what that does."
+
+    action push button
+        when in front_seat
+            and flag doors_locked
+        then set_flag doors_locked off
+            and print "<click>"
+
+    action break window
+        when in front_seat
+        then print "I think mom would get mad if I did that."
+
+    action switch seats
+        when in front_seat
+        then goto back_seat
+            and look
+
+    action switch seats
+        when in back_seat
+        then goto front_seat
+            and look
+
+    action move to front
+        when in back_seat
+        then goto front_seat
+            and look
+
+    action move front
+        when in back_seat
+        then goto front_seat
+            and look
+
+    action move back
+        when in front_seat
+        then goto back_seat
+            and look
+
+    action move to back
+        when in front_seat
+        then goto back_seat
+            and look
+
+    action "go" back seat
+        when in front_seat
+        then goto back_seat
+            and look
+            and print "There doesn't appear to be any way out to get out from back here."
+
+    action "go" back
+        when in front_seat
+        then goto back_seat
+            and look
+            and print "There doesn't appear to be any way out to get out from back here."
+
+    action "go" front seat
+        when in back_seat
+        then goto front_seat
+            and look
+
+    action "go" front
+        when in back_seat
+        then goto front_seat
+            and look
+
+    action ("exit", leave) van
+        when in front_seat
+            and flag doors_locked
+        then print "I can't get out. I have to unlock the doors first."
+
+    action ("exit", leave) van
+        when in front_seat
+        then goto outside
+            and print "Freedom!"
+
+    action "get" out
+        when in front_seat
+            and not flag doors_locked
+        then goto outside
+            and print "Freedom!"
+
+##
+## Standard actions
+##
+
+    wordgroup "help", "?"
+    wordgroup "quit"
+    wordgroup "inventory", "i"
+    wordgroup "look", "l"
+
+    action "look"
+        then look
+
+    action "inventory"
+        then inventory
+
+    action "quit"
+        then quit
+
+    action "help"
+        then print "A voice BOOOMS out:\nTry --> \"GO, LOOK, JUMP, SWIM, CLIMB, TAKE, DROP\"\nand any other verbs you can think of..."
+
+##
+## Unrecognized input
+##
+
+    action unrecognized
+        then print "Sorry, I don't know how to do that."
+
+    action unrecognized unrecognized
+        then print  "Sorry, I don't know how to do that with that thing."
+
+    action unrecognized any
+        then print "Sorry, I don't know how to that with a {noun}."
+
+    action any unrecognized
+        then print "I don't know how to {verb} with that thing."
+
+    action any none
+        then print "{verb} what?"
+
+    action any any
+        then print "I can't do that here right now."

@@ -4,12 +4,13 @@ import path from 'path';
 import { AdventureScriptParser } from '../src/AdventureScriptParser';
 import { Adventure } from '../src/Adventure';
 import { Exit, Room } from '../src/Room';
-import { Word } from '../src/Vocabulary';
-import { Action, GameState } from '../src/Action';
+import { Action } from '../src/Action';
 import { Condition } from '../src/Condition';
 import { Result } from '../src/Result';
 import { any, mock, notUndefined } from 'jest-mock-extended';
 import { Item } from '../src/Item';
+import { GameState } from '../src/GameState';
+import { Word } from '../src/Word';
 
 describe('AdventureScriptParser', () => {
   describe('Rooms', () => {
@@ -79,7 +80,10 @@ describe('AdventureScriptParser', () => {
 
     test('start set to correct room', () => {
       const adventure = parse('070adventure.txt');
-      expect(adventure.start).toBe('meadow');
+      expect(adventure.startingRoom).toEqual({
+        description: "I'm in a beautiful meadow.",
+        name: 'meadow',
+      });
       expect(adventure.rooms).toContainEqual({
         description: "I'm in a beautiful meadow.",
         name: 'meadow',
@@ -109,9 +113,10 @@ describe('AdventureScriptParser', () => {
       const condition = action.conditions?.[0] as Condition;
       expect(condition([Word.of('print')], {} as GameState)).toBeTruthy();
       const result = action.results?.[0] as Result;
+      const gameState = mock<GameState>();
       const display = jest.fn();
-      result([], {} as GameState, display);
-      expect(display).toHaveBeenCalledWith('It works');
+      result([], gameState, display);
+      expect(gameState.print).toHaveBeenCalledWith(display, 'It works');
     });
 
     test('verb and look result', () => {
@@ -147,16 +152,16 @@ describe('AdventureScriptParser', () => {
       const gameState = mock<GameState>();
       const display = jest.fn();
       action.run([Word.of('first')], gameState, display);
-      expect(display).toHaveBeenCalledWith('matched');
+      expect(gameState.print).toHaveBeenCalledWith(display, 'matched');
       jest.resetAllMocks();
       action.run([Word.of('not')], gameState, display);
       expect(display).not.toHaveBeenCalled();
       jest.resetAllMocks();
       action.run([Word.of('second')], gameState, display);
-      expect(display).toHaveBeenCalledWith('matched');
+      expect(gameState.print).toHaveBeenCalledWith(display, 'matched');
       jest.resetAllMocks();
       action.run([Word.of('third')], gameState, display);
-      expect(display).toHaveBeenCalledWith('matched');
+      expect(gameState.print).toHaveBeenCalledWith(display, 'matched');
     });
 
     test('action with required first word and verb list', () => {
@@ -165,19 +170,19 @@ describe('AdventureScriptParser', () => {
       const gameState = mock<GameState>();
       const display = jest.fn();
       action.run([Word.of('first')], gameState, display);
-      expect(display).not.toHaveBeenCalled();
+      expect(gameState.print).not.toHaveBeenCalled();
       jest.resetAllMocks();
       action.run([Word.of('first'), Word.of('one')], gameState, display);
-      expect(display).toHaveBeenCalledWith('matched!');
+      expect(gameState.print).toHaveBeenCalledWith(display, 'matched!');
       jest.resetAllMocks();
       action.run([Word.of('first'), Word.of('two')], gameState, display);
-      expect(display).toHaveBeenCalledWith('matched!');
+      expect(gameState.print).toHaveBeenCalledWith(display, 'matched!');
       jest.resetAllMocks();
       action.run([Word.of('first'), Word.of('three')], gameState, display);
-      expect(display).toHaveBeenCalledWith('matched!');
+      expect(gameState.print).toHaveBeenCalledWith(display, 'matched!');
       jest.resetAllMocks();
       action.run([Word.of('first'), Word.of('four')], gameState, display);
-      expect(display).not.toHaveBeenCalled();
+      expect(gameState.print).not.toHaveBeenCalled();
     });
 
     test('action two word groups', () => {
@@ -186,19 +191,19 @@ describe('AdventureScriptParser', () => {
       const gameState = mock<GameState>();
       const display = jest.fn();
       action.run([Word.of('first'), Word.of('one')], gameState, display);
-      expect(display).toHaveBeenCalledWith('matched!');
+      expect(gameState.print).toHaveBeenCalledWith(display, 'matched!');
       jest.resetAllMocks();
       action.run([Word.of('first'), Word.of('two')], gameState, display);
-      expect(display).toHaveBeenCalledWith('matched!');
+      expect(gameState.print).toHaveBeenCalledWith(display, 'matched!');
       jest.resetAllMocks();
       action.run([Word.of('second'), Word.of('one')], gameState, display);
-      expect(display).toHaveBeenCalledWith('matched!');
+      expect(gameState.print).toHaveBeenCalledWith(display, 'matched!');
       jest.resetAllMocks();
       action.run([Word.of('first'), Word.of('two')], gameState, display);
-      expect(display).toHaveBeenCalledWith('matched!');
+      expect(gameState.print).toHaveBeenCalledWith(display, 'matched!');
       jest.resetAllMocks();
       action.run([Word.of('nope'), Word.of('one')], gameState, display);
-      expect(display).not.toHaveBeenCalled();
+      expect(gameState.print).not.toHaveBeenCalled();
       jest.resetAllMocks();
     });
 
