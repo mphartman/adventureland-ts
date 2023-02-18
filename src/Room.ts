@@ -12,6 +12,8 @@ export class Room {
     "I am no where.  It's dark and I am alone."
   );
 
+  static INVENTORY: Room = new Room('inventory', 'Inventory');
+
   readonly #exitsByDirection: Map<string, Exit> = new Map();
 
   constructor(

@@ -64,7 +64,7 @@ export class Word {
     );
   }
 
-  toString = (): string => {
+  toString(): string {
     return this.name;
-  };
+  }
 }

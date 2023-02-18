@@ -11,6 +11,6 @@
     "skipLibCheck": true
   },
   "files": ["node_modules/jest-extended/types/index.d.ts"],
-  "include": ["src", "generated", "tests"],
+  "include": ["src", "generated", "tests", "./jest.d.ts"],
   "exclude": ["dist", "node_modules"]
 }

@@ -309,11 +309,11 @@ class ItemLocationVisitor
   }
 
   visitItemIsInInventory() {
-    return { inventory: true };
+    return { inventory: true, room: Room.INVENTORY.name };
   }
 
   visitItemIsNowhere() {
-    return { nowhere: true };
+    return { nowhere: true, room: Room.NOWHERE.name };
   }
 }
 
