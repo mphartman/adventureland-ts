@@ -542,11 +542,11 @@ class ActionsDeclarationVisitor
 
   visitActionDeclaration(ctx: ActionDeclarationContext): Action {
     const conditions = this.command(ctx).concat(this.conditions(ctx));
-    return new Action(conditions, this.results(ctx));
+    const results = this.results(ctx);
+    return new Action(conditions, results);
   }
 
   command(ctx: ActionDeclarationContext): Condition[] {
-    const words: Word[] = [];
     let pos = 1;
     const conditions: Condition[] = [];
     const visitor = new ActionWordVisitor();
@@ -554,7 +554,6 @@ class ActionsDeclarationVisitor
       const actionWord = actionWordOrList.actionWord();
       if (actionWord) {
         const word = actionWord.accept(visitor);
-        words.push(word);
         conditions.push(wordMatches(pos++, word));
       }
       const actionWordList = actionWordOrList.actionWordList();
@@ -562,7 +561,6 @@ class ActionsDeclarationVisitor
         const wordList: Word[] = [];
         for (const actionWord of actionWordList.actionWord()) {
           const word = actionWord.accept(visitor);
-          words.push(word);
           wordList.push(word);
         }
         conditions.push(wordMatchesAny(pos++, ...wordList));
