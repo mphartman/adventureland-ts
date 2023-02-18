@@ -1,6 +1,7 @@
-import { Command, GameState } from './Action';
+import { Command } from './Action';
 import { Room } from './Room';
-import { Word } from './Vocabulary';
+import { GameState } from './GameState';
+import { Word } from './Word';
 
 export type Condition = (command: Command, state: GameState) => boolean;
 
@@ -75,7 +76,7 @@ export function exists(item: string): Condition {
 }
 
 export function isFlagSet(name: string): Condition {
-  return (_command, state) => state.isFlagSet(name);
+  return (_command, state) => state.getFlag(name);
 }
 
 export function compareCounter(

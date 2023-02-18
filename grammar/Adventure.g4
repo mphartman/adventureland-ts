@@ -101,10 +101,9 @@ Letter
 StringLiteral
 	:	'"' ('\\"' | ~'"')* '"'
 	    {
-			            this.text = this.text.substring(1, this.text.length - 1);
+			      this.text = this.text.substring(1, this.text.length - 1);
 						this.text = this.text.replace(/\\n/g, '\r\n');
 						this.text = this.text.replace(/\\\"/g, '"');
-				    
 	    }
 	;
 

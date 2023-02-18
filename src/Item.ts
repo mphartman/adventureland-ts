@@ -1,5 +1,5 @@
 import { Room } from './Room';
-import { Word } from './Vocabulary';
+import { Word } from './Word';
 
 export class Item extends Word {
   #currentRoom?: string;
@@ -22,8 +22,12 @@ export class Item extends Word {
     return this.#currentRoom;
   }
 
-  isHere(room: Room): boolean {
-    return this.#currentRoom === room.name;
+  isHere(room: Room | string): boolean {
+    if (typeof room === 'string') {
+      return this.#currentRoom === room;
+    } else {
+      return this.#currentRoom === room.name;
+    }
   }
 
   isCarried(): boolean {

@@ -1,5 +1,5 @@
 import util from 'node:util';
-import { Word } from './Vocabulary';
+import { Word } from './Word';
 
 /**
  * Rooms make up a connected network of nodes between which the player may move.
