@@ -1,0 +1,3 @@
+// Tests item at invalid location is bad
+item lamp "a lamp"
+    at hallway

@@ -94,7 +94,7 @@ import { Vocabulary, Word } from './Vocabulary';
 
 type OptionalString = string | undefined;
 
-function start(adventureContext: AdventureContext): OptionalString {
+function startingRoom(adventureContext: AdventureContext): OptionalString {
   const visitor = new GlobalParameterStartVisitor();
   return adventureContext
     .globalParameter()
@@ -175,7 +175,18 @@ export class AdventureScriptParser {
         throw new Error(msg);
       },
     });
-    return new RealAdventureVisitor().visitAdventure(parser.adventure());
+    const adventure = new RealAdventureVisitor().visitAdventure(
+      parser.adventure()
+    );
+
+    const everyItemInExistingRoom = adventure.items?.every((item) =>
+      adventure.rooms.find((room) => room.name === item.currentRoom)
+    );
+    if (!everyItemInExistingRoom) {
+      throw new Error('One or more items reference non-existent rooms');
+    }
+
+    return adventure;
   }
 }
 
@@ -189,7 +200,7 @@ class RealAdventureVisitor
 
   visitAdventure(ctx: AdventureContext): Adventure {
     return {
-      start: start(ctx),
+      start: startingRoom(ctx),
       rooms: checkExits(rooms(ctx)),
       items: items(ctx),
       occurs: occurs(ctx),
