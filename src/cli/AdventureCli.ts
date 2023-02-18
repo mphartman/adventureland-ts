@@ -19,6 +19,7 @@ function read(scriptPath: string): string {
 
 const prompt: Controller = () => readline.promptCL().map((c) => Word.of(c));
 
+// eslint-disable-next-line no-console
 const consoleDisplay: Display = console.log;
 
 (async () => {

@@ -1,15 +1,14 @@
-import 'jest-extended';
 import fs from 'fs';
+import 'jest-extended';
+import { mock } from 'jest-mock-extended';
 import path from 'path';
-import { AdventureScriptParser } from '../src/AdventureScriptParser';
-import { Adventure } from '../src/Adventure';
-import { Exit, Room } from '../src/Room';
 import { Action } from '../src/Action';
+import { Adventure } from '../src/Adventure';
+import { AdventureScriptParser } from '../src/AdventureScriptParser';
 import { Condition } from '../src/Condition';
-import { Result } from '../src/Result';
-import { any, mock, notUndefined } from 'jest-mock-extended';
-import { Item } from '../src/Item';
 import { GameState } from '../src/GameState';
+import { Result } from '../src/Result';
+import { Exit, Room } from '../src/Room';
 import { Word } from '../src/Word';
 
 describe('AdventureScriptParser', () => {
