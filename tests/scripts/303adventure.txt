@@ -1,0 +1,3 @@
+// Tests action with verb and LOOK result
+action "look"
+    then look

@@ -1,0 +1,3 @@
+// Tests action with verb list
+action (first, second, third)
+    then print "matched"

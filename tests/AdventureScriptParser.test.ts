@@ -8,6 +8,8 @@ import { Word } from '../src/Vocabulary';
 import { Action, GameState } from '../src/Action';
 import { Condition } from '../src/Condition';
 import { Result } from '../src/Result';
+import { any, mock, notUndefined } from 'jest-mock-extended';
+import { Item } from '../src/Item';
 
 describe('AdventureScriptParser', () => {
   describe('Rooms', () => {
@@ -98,7 +100,7 @@ describe('AdventureScriptParser', () => {
       );
     });
 
-    test('verb and result', () => {
+    test('verb and print result', () => {
       const adventure = parse('302adventure.txt');
       expect(adventure.actions).toHaveLength(1);
       const action = adventure.actions?.[0] as Action;
@@ -110,6 +112,103 @@ describe('AdventureScriptParser', () => {
       const display = jest.fn();
       result([], {} as GameState, display);
       expect(display).toHaveBeenCalledWith('It works');
+    });
+
+    test('verb and look result', () => {
+      const adventure = parse('303adventure.txt');
+      const action = adventure.actions?.[0] as Action;
+      const gameState = mock<GameState>();
+      const display = jest.fn();
+      action.run([Word.of('look')], gameState, display);
+      expect(gameState.describe).toHaveBeenCalledWith(display);
+    });
+
+    test('verb and go result', () => {
+      const adventure = parse('304adventure.txt');
+      const action = adventure.actions?.[0] as Action;
+      const gameState = mock<GameState>();
+      const display = jest.fn();
+      action.run([Word.of('flee'), Word.of('north')], gameState, display);
+      expect(gameState.exitTowards).toHaveBeenCalledWith('north');
+    });
+
+    test('verb and quit result', () => {
+      const adventure = parse('305adventure.txt');
+      const action = adventure.actions?.[0] as Action;
+      const gameState = mock<GameState>();
+      const display = jest.fn();
+      action.run([Word.of('quit')], gameState, display);
+      expect(gameState.quit).toHaveBeenCalled();
+    });
+
+    test('action with verb list', () => {
+      const adventure = parse('306adventure.txt');
+      const action = adventure.actions?.[0] as Action;
+      const gameState = mock<GameState>();
+      const display = jest.fn();
+      action.run([Word.of('first')], gameState, display);
+      expect(display).toHaveBeenCalledWith('matched');
+      jest.resetAllMocks();
+      action.run([Word.of('not')], gameState, display);
+      expect(display).not.toHaveBeenCalled();
+      jest.resetAllMocks();
+      action.run([Word.of('second')], gameState, display);
+      expect(display).toHaveBeenCalledWith('matched');
+      jest.resetAllMocks();
+      action.run([Word.of('third')], gameState, display);
+      expect(display).toHaveBeenCalledWith('matched');
+    });
+
+    test('action with required first word and verb list', () => {
+      const adventure = parse('307adventure.txt');
+      const action = adventure.actions?.[0] as Action;
+      const gameState = mock<GameState>();
+      const display = jest.fn();
+      action.run([Word.of('first')], gameState, display);
+      expect(display).not.toHaveBeenCalled();
+      jest.resetAllMocks();
+      action.run([Word.of('first'), Word.of('one')], gameState, display);
+      expect(display).toHaveBeenCalledWith('matched!');
+      jest.resetAllMocks();
+      action.run([Word.of('first'), Word.of('two')], gameState, display);
+      expect(display).toHaveBeenCalledWith('matched!');
+      jest.resetAllMocks();
+      action.run([Word.of('first'), Word.of('three')], gameState, display);
+      expect(display).toHaveBeenCalledWith('matched!');
+      jest.resetAllMocks();
+      action.run([Word.of('first'), Word.of('four')], gameState, display);
+      expect(display).not.toHaveBeenCalled();
+    });
+
+    test('action two word groups', () => {
+      const adventure = parse('308adventure.txt');
+      const action = adventure.actions?.[0] as Action;
+      const gameState = mock<GameState>();
+      const display = jest.fn();
+      action.run([Word.of('first'), Word.of('one')], gameState, display);
+      expect(display).toHaveBeenCalledWith('matched!');
+      jest.resetAllMocks();
+      action.run([Word.of('first'), Word.of('two')], gameState, display);
+      expect(display).toHaveBeenCalledWith('matched!');
+      jest.resetAllMocks();
+      action.run([Word.of('second'), Word.of('one')], gameState, display);
+      expect(display).toHaveBeenCalledWith('matched!');
+      jest.resetAllMocks();
+      action.run([Word.of('first'), Word.of('two')], gameState, display);
+      expect(display).toHaveBeenCalledWith('matched!');
+      jest.resetAllMocks();
+      action.run([Word.of('nope'), Word.of('one')], gameState, display);
+      expect(display).not.toHaveBeenCalled();
+      jest.resetAllMocks();
+    });
+
+    test('verb with swap result', () => {
+      const adventure = parse('309adventure.txt');
+      const action = adventure.actions?.[0] as Action;
+      const gameState = mock<GameState>();
+      const display = jest.fn();
+      action.run([Word.of('unlock'), Word.of('door')], gameState, display);
+      expect(gameState.swap).toHaveBeenCalledWith('locked_door', 'open_door');
     });
   });
 

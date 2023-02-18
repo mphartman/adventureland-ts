@@ -1,0 +1,3 @@
+// Tests action with verb and QUIT result
+action "quit"
+    then quit
