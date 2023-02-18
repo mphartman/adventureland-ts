@@ -259,7 +259,7 @@ class VocabularyDeclarationVisitor
   implements AdventureVisitor<Word>
 {
   defaultResult() {
-    return Word.UNRECGONIZED;
+    return Word.UNRECOGNIZED;
   }
 
   visitWordGroup(ctx: WordGroupContext) {
@@ -589,7 +589,7 @@ class ActionWordVisitor
   implements AdventureVisitor<Word>
 {
   defaultResult(): Word {
-    return Word.UNRECGONIZED;
+    return Word.UNRECOGNIZED;
   }
 
   visitActionWordWord(ctx: ActionWordWordContext): Word {
@@ -609,6 +609,6 @@ class ActionWordVisitor
   }
 
   visitActionWordUnknown(): Word {
-    return Word.UNRECGONIZED;
+    return Word.UNRECOGNIZED;
   }
 }

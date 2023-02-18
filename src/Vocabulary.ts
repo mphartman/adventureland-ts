@@ -20,7 +20,7 @@ export class Vocabulary {
 }
 
 export class Word {
-  static UNRECGONIZED = new Word('<unrecognized>', [], false);
+  static UNRECOGNIZED = new Word('<unrecognized>', [], false);
   static NONE = new Word('<none>');
   static ANY = new Word('<any>');
 
@@ -33,7 +33,7 @@ export class Word {
   }
 
   static unrecognized(name?: string) {
-    return name ? new Word(name, [], false) : Word.UNRECGONIZED;
+    return name ? new Word(name, [], false) : Word.UNRECOGNIZED;
   }
 
   readonly #_synonyms: readonly string[];

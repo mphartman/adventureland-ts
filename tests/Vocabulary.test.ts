@@ -44,12 +44,12 @@ describe('Vocabulary', () => {
     const v = new Vocabulary([
       Word.NONE,
       Word.ANY,
-      Word.UNRECGONIZED,
+      Word.UNRECOGNIZED,
       Word.unrecognized('baz'),
     ]);
     expect(v.findMatch(Word.ANY)).toBeFalsy();
     expect(v.findMatch(Word.NONE)).toBeFalsy();
-    expect(v.findMatch(Word.UNRECGONIZED)).toBeFalsy();
+    expect(v.findMatch(Word.UNRECOGNIZED)).toBeFalsy();
     expect(v.findMatch(Word.unrecognized('baz'))).toBeFalsy();
     expect(v.findMatch(Word.of('car'))).toBeFalsy();
   });
