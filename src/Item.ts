@@ -2,8 +2,6 @@ import { Room } from './Room';
 import { Word } from './Vocabulary';
 
 export class Item extends Word {
-  private static INVENTORY = '#INVENTORY#';
-
   #currentRoom?: string;
 
   constructor(
@@ -17,7 +15,7 @@ export class Item extends Word {
     if (!description) {
       this.description = name;
     }
-    this.#currentRoom = startingRoom;
+    this.#currentRoom = startingRoom || Room.NOWHERE.name;
   }
 
   get currentRoom(): string | undefined {
@@ -29,7 +27,7 @@ export class Item extends Word {
   }
 
   isCarried(): boolean {
-    return this.#currentRoom === Item.INVENTORY;
+    return this.#currentRoom === Room.INVENTORY.name;
   }
 
   hasMoved(): boolean {
@@ -44,7 +42,7 @@ export class Item extends Word {
 
   stow(): string | undefined {
     if (this.portable) {
-      return this.drop(Item.INVENTORY);
+      return this.drop(Room.INVENTORY);
     }
     throw new Error(`Cannot stow a non-portable item in player inventory`);
   }
