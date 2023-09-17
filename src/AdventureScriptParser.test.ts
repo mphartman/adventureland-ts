@@ -280,5 +280,8 @@ function parse(scriptName: string): Adventure {
 }
 
 function script(name: string): string {
-  return fs.readFileSync(path.resolve(__dirname, 'scripts', name), 'utf-8');
+  return fs.readFileSync(
+    path.resolve(__dirname, '..', 'scripts', name),
+    'utf-8'
+  );
 }

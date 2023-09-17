@@ -32,11 +32,11 @@
     "readline-sync": "1.4.10"
   },
   "scripts": {
-    "clean": "rimraf dist",
+    "clean": "rimraf -g dist src/grammar/*.ts src/grammar/*.interp  src/grammar/*.tokens",
     "prebuild": "npm run gen",
-    "build": "tsc -b -v .",
+    "build": "tsc --project tsconfig.prod.json",
     "pregen": "npm run clean",
-    "gen": "antlr4ts -o grammar -Xexact-output-dir -Werror -no-listener -visitor grammar/Adventure.g4",
+    "gen": "antlr4ts -o src/grammar -Werror -no-listener -visitor src/grammar/Adventure.g4",
     "format": "prettier --write .",
     "lint": "eslint --max-warnings 0 .",
     "test": "jest --silent",
