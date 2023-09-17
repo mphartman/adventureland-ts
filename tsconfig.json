@@ -9,7 +9,8 @@
     "forceConsistentCasingInFileNames": true,
     "strict": true,
     "noUnusedParameters": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noImplicitAny": false
   },
   "files": ["node_modules/jest-extended/types/index.d.ts"],
   "include": ["src", "generated", "tests", "./jest.d.ts"],

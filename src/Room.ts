@@ -57,5 +57,8 @@ export class Room {
  * An Exit is made up of a direction (e.g. North) and destination Room (i.e. where you end up after traveling in this Exit's direction).
  */
 export class Exit {
-  constructor(readonly direction: string, readonly room?: string) {}
+  constructor(
+    readonly direction: string,
+    readonly room?: string
+  ) {}
 }
