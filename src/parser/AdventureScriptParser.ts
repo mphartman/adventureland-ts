@@ -1,6 +1,6 @@
 import { CharStreams, CommonTokenStream } from 'antlr4ts';
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor';
-import { AdventureLexer } from './grammar/AdventureLexer';
+import { AdventureLexer } from '../grammar/AdventureLexer';
 import {
   ActionConditionDeclarationContext,
   ActionDeclarationContext,
@@ -43,10 +43,10 @@ import {
   RoomDeclarationContext,
   RoomExitContext,
   WordGroupContext,
-} from './grammar/AdventureParser';
-import { AdventureVisitor } from './grammar/AdventureVisitor';
-import { Action } from './Action';
-import { Adventure } from './Adventure';
+} from '../grammar/AdventureParser';
+import { AdventureVisitor } from '../grammar/AdventureVisitor';
+import { Action } from '../Action';
+import { Adventure } from '../Adventure';
 import {
   carrying,
   compareCounter,
@@ -64,8 +64,8 @@ import {
   random,
   wordMatches,
   wordMatchesAny,
-} from './Condition';
-import { Item } from './Item';
+} from '../Condition';
+import { Item } from '../Item';
 import {
   decrementCounter,
   destroy,
@@ -88,10 +88,10 @@ import {
   setFlag,
   setString,
   swap,
-} from './Result';
-import { Exit, Room } from './Room';
-import { Vocabulary } from './Vocabulary';
-import { Word } from './Word';
+} from '../Result';
+import { Exit, Room } from '../Room';
+import { Vocabulary } from '../Vocabulary';
+import { Word } from '../Word';
 
 type OptionalString = string | undefined;
 

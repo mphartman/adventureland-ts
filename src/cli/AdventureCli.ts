@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { AdventureScriptParser } from '../AdventureScriptParser';
+import { AdventureScriptParser } from '../parser/AdventureScriptParser';
 import { Adventure } from '../Adventure';
 import { DefaultGameState } from '../GameState';
 import { Game } from '../Game';

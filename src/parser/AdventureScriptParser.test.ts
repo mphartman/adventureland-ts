@@ -2,14 +2,14 @@ import fs from 'fs';
 import 'jest-extended';
 import { mock } from 'jest-mock-extended';
 import path from 'path';
-import { Action } from './Action';
-import { Adventure } from './Adventure';
+import { Action } from '../Action';
+import { Adventure } from '../Adventure';
 import { AdventureScriptParser } from './AdventureScriptParser';
-import { Condition } from './Condition';
-import { GameState } from './GameState';
-import { Result } from './Result';
-import { Exit, Room } from './Room';
-import { Word } from './Word';
+import { Condition } from '../Condition';
+import { GameState } from '../GameState';
+import { Result } from '../Result';
+import { Exit, Room } from '../Room';
+import { Word } from '../Word';
 
 describe('AdventureScriptParser', () => {
   describe('Rooms', () => {
@@ -281,7 +281,7 @@ function parse(scriptName: string): Adventure {
 
 function script(name: string): string {
   return fs.readFileSync(
-    path.resolve(__dirname, '..', 'scripts', name),
+    path.resolve(__dirname, '..', '..', 'scripts', name),
     'utf-8'
   );
 }
