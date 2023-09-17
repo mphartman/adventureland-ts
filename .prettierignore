@@ -1,8 +1,10 @@
 node_modules
-grammar
-generated
 dist
 coverage
 .husky
 .prettierignore
 *.txt
+.gitignore
+.gitattributes
+*.g4
+.nvmrc

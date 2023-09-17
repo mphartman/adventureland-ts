@@ -33,5 +33,6 @@ bower_components
 Thumbs.db
 
 # Ignore built ts files
-dist/**/*
-generated/**/*
+dist
+*.js
+!jest.config.js
