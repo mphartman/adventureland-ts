@@ -40,7 +40,7 @@
     "gen": "antlr4ts -o src/grammar -Xexact-output-dir -Werror -no-listener -visitor src/grammar/Adventure.g4",
     "format": "prettier --write .",
     "lint": "eslint --max-warnings 0 .",
-    "test": "jest --silent",
+    "test": "jest --coverage",
     "start": "ts-node src/cli/AdventureCli.ts",
     "prepare": "husky install"
   },
