@@ -10,7 +10,11 @@
     "strict": true,
     "noUnusedParameters": true,
     "skipLibCheck": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "baseUrl": ".",
+    "paths": {
+      "@grammar/*": ["generated/grammar/*"]
+    }
   },
   "files": ["node_modules/jest-extended/types/index.d.ts"],
   "include": ["src", "generated", "tests", "./jest.d.ts"],

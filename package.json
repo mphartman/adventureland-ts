@@ -35,7 +35,7 @@
     "prebuild": "npm run gen",
     "build": "tsc --project .",
     "pregen": "npm run clean",
-    "gen": "antlr4ts -o generated -visitor grammar/Adventure.g4",
+    "gen": "antlr4ts -o generated/grammar -Xexact-output-dir -Werror -no-listener -visitor grammar/Adventure.g4",
     "format": "prettier --write .",
     "lint": "eslint --max-warnings 0 .",
     "test": "jest --silent",
