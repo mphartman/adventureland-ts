@@ -37,7 +37,7 @@
     "prebuild": "npm run gen",
     "build": "tsc --project tsconfig.prod.json",
     "pregen": "npm run clean",
-    "gen": "antlr4ts -o src/grammar -Werror -no-listener -visitor src/grammar/Adventure.g4",
+    "gen": "antlr4ts -o src/grammar -Xexact-output-dir -Werror -no-listener -visitor src/grammar/Adventure.g4",
     "format": "prettier --write .",
     "lint": "eslint --max-warnings 0 .",
     "test": "jest --silent",
