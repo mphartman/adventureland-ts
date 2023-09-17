@@ -1,6 +1,6 @@
 import { CharStreams, CommonTokenStream } from 'antlr4ts';
 import { AbstractParseTreeVisitor } from 'antlr4ts/tree/AbstractParseTreeVisitor';
-import { AdventureLexer } from 'grammar/AdventureLexer';
+import { AdventureLexer } from './AdventureLexer';
 import {
   ActionConditionDeclarationContext,
   ActionDeclarationContext,
@@ -43,8 +43,8 @@ import {
   RoomDeclarationContext,
   RoomExitContext,
   WordGroupContext,
-} from 'grammar/AdventureParser';
-import { AdventureVisitor } from 'grammar/AdventureVisitor';
+} from './AdventureParser';
+import { AdventureVisitor } from './AdventureVisitor';
 import { Action } from './Action';
 import { Adventure } from './Adventure';
 import {

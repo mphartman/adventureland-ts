@@ -2,14 +2,14 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "../dist",
-    "composite": true, // needed for references sub-projects
+    "composite": true,
     "rootDir": ".",
     "tsBuildInfoFile": "../dist/testbuildinfo",
-    "rootDirs": ["../src", "../tests"] // important (!)
+    "rootDirs": ["../src", "../tests"]
   },
   "references": [
     {
-      "path": "../src" // test project depends on src
+      "path": "../src"
     }
   ]
 }

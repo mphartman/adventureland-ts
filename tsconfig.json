@@ -1,5 +1,5 @@
 {
-  "files": [], // this root tsconfig just exists to compose sub-projects
+  "files": [],
   "references": [
     {
       "path": "./src"
