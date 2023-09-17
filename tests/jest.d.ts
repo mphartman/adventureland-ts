@@ -1,5 +1,5 @@
 import * as expect from 'expect';
-import { Room } from './src/Room';
+import { Room } from './Room';
 
 declare global {
   namespace jest {

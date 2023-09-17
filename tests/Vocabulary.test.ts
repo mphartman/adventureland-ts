@@ -1,5 +1,5 @@
-import { Vocabulary } from '../src/Vocabulary';
-import { Word } from '../src/Word';
+import { Vocabulary } from './Vocabulary';
+import { Word } from './Word';
 
 describe('Word', () => {
   it('should match Word with same name', () => {

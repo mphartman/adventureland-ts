@@ -1,0 +1,19 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "../dist",
+    "composite": true, // needed for references sub-projects
+    "rootDir": ".",
+    "tsBuildInfoFile": "../dist/srcbuildinfo",
+    "rootDirs": ["../src", "../grammar"], // important (!)
+    "baseUrl": ".",
+    "paths": {
+      "grammar/*": ["../grammar/*"]
+    }
+  },
+  "references": [
+    {
+      "path": "../grammar" // src project depends on grammar
+    }
+  ]
+}

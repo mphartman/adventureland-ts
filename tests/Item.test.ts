@@ -1,5 +1,5 @@
-import { Item } from '../src/Item';
-import { Room } from '../src/Room';
+import { Item } from './Item';
+import { Room } from './Room';
 
 describe('Item', () => {
   it('should default description to name', () => {

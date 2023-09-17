@@ -1,5 +1,5 @@
-import { Exit, Room } from '../src/Room';
-import { Word } from '../src/Word';
+import { Exit, Room } from './Room';
+import { Word } from './Word';
 
 describe('Room', () => {
   it('should have name and description', () => {
